@@ -21,7 +21,7 @@ const useAuthStore = create<AuthState>((set) => ({
 
     //login function
     LoginUser: async (email, password) => {
-        set({ isloading: true })
+        set({ isloading: true, error: null })
 
         try {
 
@@ -56,6 +56,9 @@ const useAuthStore = create<AuthState>((set) => ({
             if (error) {
                 throw error
             }
+            set({
+                user: null, error: null
+            })
         } catch (error: any) {
             console.log(error)
             set({
