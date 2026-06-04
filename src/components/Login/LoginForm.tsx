@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -7,16 +7,18 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { LoginUser, isloading, error } = useAuthStore();
+  const { LoginUser, isloading, error, user } = useAuthStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/home');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     await LoginUser(email, password);
-    const currentUser = useAuthStore.getState().user;
-    if (currentUser) {
-      navigate('/home');
-    }
   };
 
   return (
