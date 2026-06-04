@@ -7,7 +7,9 @@ interface AuthState {
     isloading: boolean,
     user: User | null,
     error: string | null,
-    LoginUser: (email: string, password: string) => void
+    LoginUser: (email: string, password: string) => void,
+    logoutUser: () => void,
+
 }
 
 
@@ -24,24 +26,46 @@ const useAuthStore = create<AuthState>((set) => ({
         try {
 
             //use supabase built in login feature
-            const res = await supabase.auth.signInWithPassword({
+            const {data, error} = await supabase.auth.signInWithPassword({
                 email,
                 password
             })
 
-            if (res.error) {
-                throw res.error
+            if (error) {
+                throw error
             }
             //store the email and password in the store
             set({
-                user: res.data.user
+                user: data.user
             })
-        } catch (error) {
+        } catch (error: any) {
             console.log(error)
+            set({
+                error: error.message || 'an error occured'
+            })
+        } finally {
+            set({ isloading: false })
+        }
+    },
+
+    
+    logoutUser: async() =>{
+        set({isloading:true})
+        try {
+            const{error} = await supabase.auth.signOut()
+            if (error) {
+                throw error
+            }
+        } catch (error: any) {
+            console.log(error)
+            set({
+                error: error.message || 'an error occured'
+            })
         } finally {
             set({ isloading: false })
         }
     }
+    
     
 }))
 
