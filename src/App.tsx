@@ -1,5 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { supabase } from "./utils/db"
+import Loginpage from "./views/Loginpage"
+
 export default function App() {
 
   async function checkAuth() {
@@ -10,7 +12,7 @@ export default function App() {
     }
     
     if (!session.data.session) {
-      return <Navigate to="/" replace />
+      // You can add additional logic here if needed
     }
   }
 
@@ -19,9 +21,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/" element={<Loginpage />} />
+        <Route path="/home" element={<div>Home - Protected Route Placeholder</div>} />
       </Routes>
-      </BrowserRouter>
+    </BrowserRouter>
   )
 }
 
