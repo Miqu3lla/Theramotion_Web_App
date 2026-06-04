@@ -25,6 +25,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={user ? <Homepage /> : <Navigate to="/login" />} />
         <Route path="/home" element={user ? <Homepage /> : <Navigate to="/login" />} />
         <Route path="/login" element={!user ? <Loginpage /> : <Navigate to="/home" />} />
       </Routes>
