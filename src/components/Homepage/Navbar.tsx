@@ -1,10 +1,12 @@
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
+import { motion } from 'framer-motion';
 
 export default function Navbar() {
   const { logoutUser } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await logoutUser();
@@ -20,9 +22,35 @@ export default function Navbar() {
           <h1 className="font-headline-md text-headline-md font-bold text-primary" style={{ fontSize: '20px' }}>Theramotion</h1>
         </div>
         {/* Navigation Links */}
-        <nav className="flex gap-6 h-full">
-          <Link className="flex items-center h-full text-primary border-b-2 border-primary pb-1 font-label-md text-label-md transition-all duration-200" to="/home">Dashboard</Link>
-          <Link className="flex items-center h-full text-on-surface-variant hover:text-primary font-label-md text-label-md transition-all duration-200" to="/notes">Notes</Link>
+        <nav className="flex gap-6 h-full relative">
+          <Link 
+            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/home' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`} 
+            to="/home"
+          >
+            Dashboard
+            {location.pathname === '/home' && (
+              <motion.div
+                layoutId="navbar-indicator"
+                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
+                initial={false}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
+          </Link>
+          <Link 
+            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/notes' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`} 
+            to="/notes"
+          >
+            Notes
+            {location.pathname === '/notes' && (
+              <motion.div
+                layoutId="navbar-indicator"
+                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
+                initial={false}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
+          </Link>
         </nav>
       </div>
       
