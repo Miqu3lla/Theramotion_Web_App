@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Theramotion - Patient Dashboard</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f2f4f6",
+                    "outline": "#737686",
+                    "on-tertiary-container": "#e9f0ff",
+                    "background": "#f7f9fb",
+                    "on-secondary-fixed": "#151c23",
+                    "on-error-container": "#93000a",
+                    "on-background": "#191c1e",
+                    "on-secondary-fixed-variant": "#40484f",
+                    "on-tertiary-fixed": "#0b1c30",
+                    "primary": "#004ac6",
+                    "secondary-fixed": "#dce3ec",
+                    "tertiary-fixed": "#d3e4fe",
+                    "inverse-on-surface": "#eff1f3",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#38485d",
+                    "on-primary-fixed": "#00174b",
+                    "on-surface-variant": "#434655",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "inverse-surface": "#2d3133",
+                    "surface-dim": "#d8dadc",
+                    "on-error": "#ffffff",
+                    "primary-container": "#2563eb",
+                    "surface-tint": "#0053db",
+                    "surface-container-highest": "#e0e3e5",
+                    "tertiary-fixed-dim": "#b7c8e1",
+                    "tertiary-container": "#5e6e85",
+                    "surface-container-high": "#e6e8ea",
+                    "inverse-primary": "#b4c5ff",
+                    "outline-variant": "#c3c6d7",
+                    "tertiary": "#46566c",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "surface": "#f7f9fb",
+                    "secondary-fixed-dim": "#c0c7d0",
+                    "primary-fixed": "#dbe1ff",
+                    "secondary": "#585f67",
+                    "surface-variant": "#e0e3e5",
+                    "secondary-container": "#dce3ec",
+                    "on-secondary-container": "#5e656d",
+                    "surface-container": "#eceef0",
+                    "on-surface": "#191c1e",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-container": "#eeefff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin": "32px",
+                    "sm": "12px",
+                    "base": "8px",
+                    "lg": "40px",
+                    "xs": "4px",
+                    "xl": "64px",
+                    "gutter": "24px",
+                    "md": "24px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "title-lg": ["Inter"],
+                    "display": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+        /* Hide scrollbar for clean UI but keep functionality */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e0e3e5; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c3c6d7; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-40 border-b border-outline-variant shadow-sm bg-surface-container-lowest flex justify-between items-center px-8 h-16 transition-all duration-200">
+<div class="flex items-center h-full">
+<!-- Logo -->
+<div class="flex items-center gap-sm mr-8">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">vital_signs</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary" style="font-size: 20px;">Theramotion</h1>
+</div>
+<!-- Navigation Links -->
+<nav class="flex gap-md h-full">
+<a class="flex items-center h-full text-primary border-b-2 border-primary pb-1 font-label-md text-label-md transition-all duration-200" href="#">Dashboard</a>
+<a class="flex items-center h-full text-on-surface-variant hover:text-primary font-label-md text-label-md transition-all duration-200" href="#">Notes</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<!-- Search Bar (on_right) -->
+<div class="relative hidden lg:block w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+<input class="w-full pl-10 pr-4 py-1.5 bg-surface text-on-surface font-body-sm text-body-sm rounded-full border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" placeholder="Search patients..." type="text"/>
+</div>
+<!-- Trailing Icons -->
+<button class="text-on-surface-variant hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="w-px h-8 bg-outline-variant mx-2"></div>
+<!-- Profile Avatar -->
+<button class="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary overflow-hidden border border-outline-variant flex items-center justify-center shadow-sm">
+<img alt="Clinician Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a female clinician in a brightly lit, modern medical office. She is wearing blue scrubs and has a warm, welcoming smile. The lighting is soft and natural, emphasizing a trustworthy and empathetic clinical environment. The color palette is composed of crisp whites and reassuring blues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDckpXTtlWnkeBm1Dtu5AfBfUmpIcKIcu3Dt_1FcDqBPpxcS6fwIE_82Nt0PqeIDRBU5LaJ4oqcZa5qTYnARZPbxiAi-W7iHRmyIrtzat6MJLUBJjyT8kzyc9vlfcXBqMaA3evuc0jpcj8IU6Z1U03mcKo-JCRVdxuehReu6BolQ2CtR3yTDCykUXVFtKmNVwwQFKhN_jWi59D2FjUCCH6yVeBLNBmy8_YIky8YOcwQTy_IBaG1hMamtc6GdXXAow_oczSs6kP9JjdW"/>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="mt-16 p-margin max-w-[1440px] mx-auto">
+<!-- Dashboard Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-lg gap-4">
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-1">Thursday, October 26</p>
+<h2 class="font-display text-display text-on-background">Good morning, Dr. Hayes</h2>
+</div>
+<div class="w-full md:w-auto relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px] group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full md:w-80 pl-10 pr-4 py-2.5 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary shadow-sm outline-none transition-all" placeholder="Find by name, ID, or condition..." type="text"/>
+</div>
+</div>
+<!-- Quick Stats Bento -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-lg">
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-sm border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-on-tertiary-container text-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">groups</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Active Patients</p>
+<p class="font-headline-lg text-headline-lg text-on-surface">142</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-sm border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">calendar_clock</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sessions Today</p>
+<p class="font-headline-lg text-headline-lg text-on-surface">8</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-sm border border-outline-variant flex items-center gap-4 relative overflow-hidden">
+<div class="absolute right-0 top-0 w-2 h-full bg-error"></div>
+<div class="w-12 h-12 rounded-lg bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">assignment_late</span>
+</div>
+<div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Pending Notes</p>
+<p class="font-headline-lg text-headline-lg text-on-surface">3</p>
+</div>
+</div>
+</div>
+<!-- Section Title -->
+<div class="flex justify-between items-center mb-md border-b border-outline-variant pb-2">
+<h3 class="font-title-lg text-title-lg text-on-background">Recent Patients</h3>
+<button class="text-primary hover:text-primary-fixed-variant font-label-md text-label-md flex items-center gap-1 transition-colors">
+                View All Directory
+                <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<!-- Patient Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<article class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-gutter flex flex-col hover:shadow-md transition-shadow group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center font-title-lg text-title-lg border border-tertiary-fixed-dim">
+                            MJ
+                        </div>
+<div>
+<h4 class="font-title-lg text-title-lg text-on-surface group-hover:text-primary transition-colors">Marcus Johnson</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Post-Op Knee Rehab</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant rounded-md font-label-md text-label-md text-[10px] uppercase border border-outline-variant">Active</span>
+</div>
+<div class="mb-6 space-y-2">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">event_available</span>
+<span class="font-body-sm text-body-sm">Last Session: <strong>Oct 24, 2023</strong></span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="font-body-sm text-body-sm">Next: Today, 2:00 PM</span>
+</div>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-4 flex gap-2">
+<button class="flex-1 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container-highest transition-colors py-2 rounded-lg font-label-md text-label-md">Log Note</button>
+<button class="flex-1 bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity py-2 rounded-lg font-label-md text-label-md shadow-sm">View Profile</button>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-gutter flex flex-col hover:shadow-md transition-shadow group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-title-lg text-title-lg border border-primary-fixed-dim">
+                            ES
+                        </div>
+<div>
+<h4 class="font-title-lg text-title-lg text-on-surface group-hover:text-primary transition-colors">Elena Smith</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Chronic Lower Back</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant rounded-md font-label-md text-label-md text-[10px] uppercase border border-outline-variant">Active</span>
+</div>
+<div class="mb-6 space-y-2">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">event_available</span>
+<span class="font-body-sm text-body-sm">Last Session: <strong>Oct 20, 2023</strong></span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="font-body-sm text-body-sm">Next: Oct 28, 10:00 AM</span>
+</div>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-4 flex gap-2">
+<button class="flex-1 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container-highest transition-colors py-2 rounded-lg font-label-md text-label-md">Log Note</button>
+<button class="flex-1 bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity py-2 rounded-lg font-label-md text-label-md shadow-sm">View Profile</button>
+</div>
+</article>
+<!-- Card 3 (Needs Attention) -->
+<article class="bg-surface-container-lowest rounded-xl shadow-sm border border-error-container p-gutter flex flex-col hover:shadow-md transition-shadow group relative overflow-hidden">
+<div class="absolute left-0 top-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center font-title-lg text-title-lg border border-outline-variant">
+                            RW
+                        </div>
+<div>
+<h4 class="font-title-lg text-title-lg text-on-surface group-hover:text-primary transition-colors">Robert Williams</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Rotator Cuff Tear</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-error-container text-on-error-container rounded-md font-label-md text-label-md text-[10px] uppercase border border-error-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span> Review
+                    </span>
+</div>
+<div class="mb-6 space-y-2">
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-[16px]">event_busy</span>
+<span class="font-body-sm text-body-sm">Missed Session: <strong>Oct 25, 2023</strong></span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="font-body-sm text-body-sm">Next: Unscheduled</span>
+</div>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-4 flex gap-2">
+<button class="flex-1 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container-highest transition-colors py-2 rounded-lg font-label-md text-label-md">Contact</button>
+<button class="flex-1 bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity py-2 rounded-lg font-label-md text-label-md shadow-sm">View Profile</button>
+</div>
+</article>
+<!-- Card 4 -->
+<article class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-gutter flex flex-col hover:shadow-md transition-shadow group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-title-lg text-title-lg border border-secondary-fixed-dim">
+                            AL
+                        </div>
+<div>
+<h4 class="font-title-lg text-title-lg text-on-surface group-hover:text-primary transition-colors">Amanda Lee</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Ankle Sprain Grade II</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-surface-container-low text-on-surface-variant rounded-md font-label-md text-label-md text-[10px] uppercase border border-outline-variant">Active</span>
+</div>
+<div class="mb-6 space-y-2">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">event_available</span>
+<span class="font-body-sm text-body-sm">Last Session: <strong>Oct 18, 2023</strong></span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="font-body-sm text-body-sm">Next: Nov 01, 9:00 AM</span>
+</div>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-4 flex gap-2">
+<button class="flex-1 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container-highest transition-colors py-2 rounded-lg font-label-md text-label-md">Log Note</button>
+<button class="flex-1 bg-primary-container text-on-primary-container hover:opacity-90 transition-opacity py-2 rounded-lg font-label-md text-label-md shadow-sm">View Profile</button>
+</div>
+</article>
+</div>
+</main>
+</body></html>
