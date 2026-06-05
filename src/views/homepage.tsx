@@ -1,7 +1,7 @@
 
 import usePatientStore from '../store/patientStore';
 import { useEffect } from 'react';
-import Navbar from '../components/Homepage/Navbar';
+
 import PatientCard from '../components/Homepage/PatientCard';
 
 export default function Homepage() {
@@ -12,9 +12,8 @@ export default function Homepage() {
   }, [fetchPatients])
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
-      <Navbar />
-      
+    <div className="flex-1 w-full bg-surface">
+
       <main className="flex-1 w-full px-6 md:px-10 py-8 mx-auto">
         {/* Header section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-8">

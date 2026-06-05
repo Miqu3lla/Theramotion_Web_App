@@ -1,5 +1,16 @@
 
+import { Link, useNavigate } from 'react-router-dom';
+import useAuthStore from '../../store/authStore';
+
 export default function Navbar() {
+  const { logoutUser } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logoutUser();
+    navigate('/login');
+  };
+
   return (
     <header className="w-full z-40 border-b border-outline-variant shadow-sm bg-surface-container-lowest flex justify-between items-center px-8 h-16 transition-all duration-200">
       <div className="flex items-center h-full">
@@ -10,12 +21,18 @@ export default function Navbar() {
         </div>
         {/* Navigation Links */}
         <nav className="flex gap-6 h-full">
-          <a className="flex items-center h-full text-primary border-b-2 border-primary pb-1 font-label-md text-label-md transition-all duration-200" href="#">Dashboard</a>
-          <a className="flex items-center h-full text-on-surface-variant hover:text-primary font-label-md text-label-md transition-all duration-200" href="#">Notes</a>
+          <Link className="flex items-center h-full text-primary border-b-2 border-primary pb-1 font-label-md text-label-md transition-all duration-200" to="/home">Dashboard</Link>
+          <Link className="flex items-center h-full text-on-surface-variant hover:text-primary font-label-md text-label-md transition-all duration-200" to="/notes">Notes</Link>
         </nav>
       </div>
       
       <div className="flex items-center gap-6">
+        <button 
+          onClick={handleLogout}
+          className="text-label-md font-bold text-on-surface-variant hover:text-error transition-colors"
+        >
+          Sign Out
+        </button>
         {/* Profile Avatar */}
         <button className="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary overflow-hidden border border-outline-variant flex items-center justify-center shadow-sm">
           <img alt="Clinician Avatar" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDckpXTtlWnkeBm1Dtu5AfBfUmpIcKIcu3Dt_1FcDqBPpxcS6fwIE_82Nt0PqeIDRBU5LaJ4oqcZa5qTYnARZPbxiAi-W7iHRmyIrtzat6MJLUBJjyT8kzyc9vlfcXBqMaA3evuc0jpcj8IU6Z1U03mcKo-JCRVdxuehReu6BolQ2CtR3yTDCykUXVFtKmNVwwQFKhN_jWi59D2FjUCCH6yVeBLNBmy8_YIky8YOcwQTy_IBaG1hMamtc6GdXXAow_oczSs6kP9JjdW"/>
