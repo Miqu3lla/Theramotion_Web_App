@@ -1,15 +1,55 @@
 
 import usePatientStore from '../store/patientStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import PatientCard from '../components/Homepage/PatientCard';
+import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
+import Pagination from '../components/ui/Pagination';
+import { usePatientSearch } from '../hooks/usePatientSearch';
 
 export default function Homepage() {
-  const { fetchPatients, patients, isLoading, error } = usePatientStore()
+  const { fetchPatients, patients, isLoading, error} = usePatientStore()
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  })()
+
 
   useEffect(() => {
     fetchPatients()
   }, [fetchPatients])
+
+  const { search, setSearch, filteredPatients } = usePatientSearch(patients)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
+  const paginatedPatients = filteredPatients.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  //function to get the current date
+  const getCurrentDate = () => {
+     const date = new Date()
+    //use Intl.datetimeFormatOptions to let typescript know that this is a valid date format
+     const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: 'numeric'
+
+      }
+      return date.toLocaleDateString("en-US", options)
+  }
+
+
+  
+  
+  
 
   return (
     <div className="flex-1 w-full bg-surface">
@@ -19,10 +59,10 @@ export default function Homepage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-8">
           <div>
             <p className="text-body-md text-on-surface-variant mb-2">
-              Thursday, October 26
+              {getCurrentDate()}
             </p>
             <h1 className="text-display font-display font-bold text-on-surface">
-              Good morning nigga
+              {greeting}
             </h1>
           </div>
           
@@ -33,7 +73,12 @@ export default function Homepage() {
               </svg>
             </div>
             <input 
-              type="text" 
+              type="text"
+              value={search}
+              onChange={e => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Find by name, ID, or condition..." 
               className="w-full pl-10 pr-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-body-md"
             />
@@ -44,9 +89,12 @@ export default function Homepage() {
         <section>
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-outline-variant">
             <h2 className="text-title-lg font-display font-bold text-on-surface">
-              All Patients
+              Patients
             </h2>
-            <button className="text-primary font-label-md font-bold hover:text-primary-container flex items-center gap-1">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="text-primary font-label-md font-bold hover:text-primary-container flex items-center gap-1"
+            >
               View All Directory
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -66,15 +114,36 @@ export default function Homepage() {
             <div className="bg-surface-container-low border border-outline-variant border-dashed p-12 rounded-xl text-center">
               <p className="text-body-lg text-on-surface-variant">No patients found.</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {patients.map((patient) => (
-                <PatientCard key={patient.id} patient={patient} />
-              ))}
+          ) : filteredPatients.length === 0 ? (
+            <div className="bg-surface-container-low border border-outline-variant border-dashed p-12 rounded-xl text-center">
+              <p className="text-body-lg text-on-surface-variant">No matching patients found.</p>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                {paginatedPatients.map((patient) => (
+                  <PatientCard key={patient.id} patient={patient} />
+                ))}
+              </div>
+              
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredPatients.length}
+                onPageChange={setCurrentPage}
+                itemName="patients"
+              />
+            </>
           )}
         </section>
       </main>
+      
+      <PatientDirectoryModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        patients={patients} 
+      />
     </div>
   );
 }
