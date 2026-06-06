@@ -3,6 +3,7 @@ import usePatientStore from '../store/patientStore';
 import { useEffect, useState } from 'react';
 
 import PatientCard from '../components/Homepage/PatientCard';
+import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
 
 export default function Homepage() {
   const { fetchPatients, patients, isLoading, error} = usePatientStore()
@@ -14,6 +15,7 @@ export default function Homepage() {
   }, [fetchPatients])
 
   const [search, setSearch] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const filteredPatients = patients?.filter(patient => 
     patient.name.toLowerCase().includes(search.toLowerCase())
@@ -27,6 +29,7 @@ export default function Homepage() {
       weekday: "long",
       month: "long",
       day: "numeric",
+      year: 'numeric'
 
       }
       return date.toLocaleDateString("en-US", options)
@@ -89,7 +92,10 @@ export default function Homepage() {
             <h2 className="text-title-lg font-display font-bold text-on-surface">
               All Patients
             </h2>
-            <button className="text-primary font-label-md font-bold hover:text-primary-container flex items-center gap-1">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="text-primary font-label-md font-bold hover:text-primary-container flex items-center gap-1"
+            >
               View All Directory
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -122,6 +128,12 @@ export default function Homepage() {
           )}
         </section>
       </main>
+      
+      <PatientDirectoryModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        patients={patients} 
+      />
     </div>
   );
 }
