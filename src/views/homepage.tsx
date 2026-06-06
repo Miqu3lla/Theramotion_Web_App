@@ -5,23 +5,25 @@ import { useEffect, useState } from 'react';
 import PatientCard from '../components/Homepage/PatientCard';
 import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
 import Pagination from '../components/ui/Pagination';
+import { usePatientSearch } from '../hooks/usePatientSearch';
 
 export default function Homepage() {
   const { fetchPatients, patients, isLoading, error} = usePatientStore()
-  const [greeting, setGreeting] = useState("")
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  })()
 
 
   useEffect(() => {
     fetchPatients()
   }, [fetchPatients])
 
-  const [search, setSearch] = useState('')
+  const { search, setSearch, filteredPatients } = usePatientSearch(patients)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-
-  const filteredPatients = patients?.filter(patient => 
-    patient.first_name?.toLowerCase().includes(search.toLowerCase())
-   || patient.last_name?.toLowerCase().includes(search.toLowerCase())) || []
 
   const itemsPerPage = 8;
   const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
@@ -43,22 +45,7 @@ export default function Homepage() {
       }
       return date.toLocaleDateString("en-US", options)
   }
-  //function to get the current hour for greeting
-  const getGreeting = () => {
-    const hour = new Date().getHours();
 
-    if (hour < 12) {
-      setGreeting("Good morning")
-    } else if (hour < 18) {
-      setGreeting("Good afternoon")
-    } else {
-      setGreeting("Good evening")
-    }
-  }
-
-  useEffect(() => {
-    getGreeting()
-  }, [])
 
   
   

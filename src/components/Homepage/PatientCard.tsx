@@ -12,6 +12,11 @@ interface PatientCardProps {
 
 export default function PatientCard({ patient }: PatientCardProps) {
 
+  const initials = [patient.first_name?.[0], patient.last_name?.[0]]
+    .filter(Boolean)
+    .join('')
+    .toUpperCase() || '?';
+
   const displayText = patient.affected_area === 'both' && patient.affected_side === 'both' ? 'Both arms and legs' : `${patient.affected_side} - ${patient.affected_area}`
 
   return (
@@ -19,6 +24,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-3 items-center">
           <div className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center text-title-lg font-bold">
+            {initials}
           </div>
           <div>
             <h3 className="text-body-lg font-display font-semibold text-on-surface">

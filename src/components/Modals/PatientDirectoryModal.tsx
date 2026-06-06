@@ -1,13 +1,6 @@
-import  { useState } from 'react';
 import PatientCard from '../Homepage/PatientCard';
+import { usePatientSearch, Patient } from '../../hooks/usePatientSearch';
 
-interface Patient {
-  id: string;
-  first_name?: string
-  last_name?: string
-  affected_area?: string
-  affected_side?: string
-}
 
 interface PatientDirectoryModalProps {
   isOpen: boolean;
@@ -16,13 +9,10 @@ interface PatientDirectoryModalProps {
 }
 
 export default function PatientDirectoryModal({ isOpen, onClose, patients }: PatientDirectoryModalProps) {
-  const [search, setSearch] = useState('');
+  const { search, setSearch, filteredPatients } = usePatientSearch(patients);
 
   if (!isOpen) return null;
 
-  const filteredPatients = patients?.filter(patient => 
-    patient.first_name?.toLowerCase().includes(search.toLowerCase())
-   || patient.last_name?.toLowerCase().includes(search.toLowerCase())) || [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
