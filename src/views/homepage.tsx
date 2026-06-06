@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import PatientCard from '../components/Homepage/PatientCard';
 import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
+import Pagination from '../components/ui/Pagination';
 
 export default function Homepage() {
   const { fetchPatients, patients, isLoading, error} = usePatientStore()
@@ -19,8 +20,8 @@ export default function Homepage() {
   const [currentPage, setCurrentPage] = useState(1)
 
   const filteredPatients = patients?.filter(patient => 
-    patient.name.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+    patient.first_name?.toLowerCase().includes(search.toLowerCase())
+   || patient.last_name?.toLowerCase().includes(search.toLowerCase())) || []
 
   const itemsPerPage = 8;
   const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
@@ -138,46 +139,14 @@ export default function Homepage() {
                 ))}
               </div>
               
-              {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between border-t border-outline-variant pt-6 mt-2 gap-4">
-                  <span className="text-body-sm text-on-surface-variant font-medium">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredPatients.length)} of {filteredPatients.length} patients
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="px-4 py-2 border border-outline-variant rounded-md text-label-md font-medium text-on-surface hover:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Previous
-                    </button>
-                    
-                    <div className="flex items-center gap-1 hidden sm:flex">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-8 h-8 flex items-center justify-center rounded-md text-label-md font-medium transition-colors ${
-                            currentPage === page 
-                              ? 'bg-primary text-on-primary' 
-                              : 'text-on-surface hover:bg-surface-container'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-4 py-2 border border-outline-variant rounded-md text-label-md font-medium text-on-surface hover:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              )}
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredPatients.length}
+                onPageChange={setCurrentPage}
+                itemName="patients"
+              />
             </>
           )}
         </section>

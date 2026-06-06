@@ -3,9 +3,10 @@ import PatientCard from '../Homepage/PatientCard';
 
 interface Patient {
   id: string;
-  name: string;
-  affected_area?: string;
-  affected_side?: string;
+  first_name?: string
+  last_name?: string
+  affected_area?: string
+  affected_side?: string
 }
 
 interface PatientDirectoryModalProps {
@@ -20,8 +21,8 @@ export default function PatientDirectoryModal({ isOpen, onClose, patients }: Pat
   if (!isOpen) return null;
 
   const filteredPatients = patients?.filter(patient => 
-    patient.name.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+    patient.first_name?.toLowerCase().includes(search.toLowerCase())
+   || patient.last_name?.toLowerCase().includes(search.toLowerCase())) || [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

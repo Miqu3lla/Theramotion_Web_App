@@ -4,7 +4,8 @@ import { supabase } from '../utils/db'
 
 interface Patient { 
     id: string,
-    name: string,
+    first_name?: string,
+    last_name?: string,
     affected_area?: string,
     affected_side?: string
 }
