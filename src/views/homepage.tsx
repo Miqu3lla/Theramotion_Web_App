@@ -1,15 +1,46 @@
 
 import usePatientStore from '../store/patientStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import PatientCard from '../components/Homepage/PatientCard';
 
 export default function Homepage() {
   const { fetchPatients, patients, isLoading, error } = usePatientStore()
+  const [greeting, setGreeting] = useState("")
 
   useEffect(() => {
     fetchPatients()
   }, [fetchPatients])
+
+  //function to get the current date
+  const getCurrentDate = () => {
+     const date = new Date()
+    //use Intl.datetimeFormatOptions to let typescript know that this is a valid date format
+     const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+
+      }
+      return date.toLocaleDateString("en-US", options)
+  }
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+
+    if (hour < 12) {
+      setGreeting("Good morning")
+    } else if (hour < 18) {
+      setGreeting("Good afternoon")
+    } else {
+      setGreeting("Good evening")
+    }
+  }
+
+  useEffect(() => {
+    getGreeting()
+  }, [])
+  
+  
 
   return (
     <div className="flex-1 w-full bg-surface">
@@ -19,10 +50,10 @@ export default function Homepage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-8">
           <div>
             <p className="text-body-md text-on-surface-variant mb-2">
-              Thursday, October 26
+              {getCurrentDate()}
             </p>
             <h1 className="text-display font-display font-bold text-on-surface">
-              Good morning nigga
+              {greeting}
             </h1>
           </div>
           
