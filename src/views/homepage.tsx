@@ -5,12 +5,19 @@ import { useEffect, useState } from 'react';
 import PatientCard from '../components/Homepage/PatientCard';
 
 export default function Homepage() {
-  const { fetchPatients, patients, isLoading, error } = usePatientStore()
+  const { fetchPatients, patients, isLoading, error} = usePatientStore()
   const [greeting, setGreeting] = useState("")
+
 
   useEffect(() => {
     fetchPatients()
   }, [fetchPatients])
+
+  const [search, setSearch] = useState('')
+
+  const filteredPatients = patients?.filter(patient => 
+    patient.name.toLowerCase().includes(search.toLowerCase())
+  ) || [];
 
   //function to get the current date
   const getCurrentDate = () => {
@@ -24,6 +31,7 @@ export default function Homepage() {
       }
       return date.toLocaleDateString("en-US", options)
   }
+  //function to get the current hour for greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
 
@@ -39,6 +47,8 @@ export default function Homepage() {
   useEffect(() => {
     getGreeting()
   }, [])
+
+  
   
   
 
@@ -64,7 +74,9 @@ export default function Homepage() {
               </svg>
             </div>
             <input 
-              type="text" 
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
               placeholder="Find by name, ID, or condition..." 
               className="w-full pl-10 pr-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-body-md"
             />
@@ -97,9 +109,13 @@ export default function Homepage() {
             <div className="bg-surface-container-low border border-outline-variant border-dashed p-12 rounded-xl text-center">
               <p className="text-body-lg text-on-surface-variant">No patients found.</p>
             </div>
+          ) : filteredPatients.length === 0 ? (
+            <div className="bg-surface-container-low border border-outline-variant border-dashed p-12 rounded-xl text-center">
+              <p className="text-body-lg text-on-surface-variant">No matching patients found.</p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {patients.map((patient) => (
+              {filteredPatients.map((patient) => (
                 <PatientCard key={patient.id} patient={patient} />
               ))}
             </div>

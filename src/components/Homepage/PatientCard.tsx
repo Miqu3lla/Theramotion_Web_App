@@ -1,7 +1,8 @@
-
 interface Patient {
   id: string;
   name: string;
+  affected_area?: string;
+  affected_side?: string;
 }
 
 interface PatientCardProps {
@@ -9,19 +10,21 @@ interface PatientCardProps {
 }
 
 export default function PatientCard({ patient }: PatientCardProps) {
+  
+  const displayText = patient.affected_area === 'both' && patient.affected_side === 'both' ? 'Both arms and legs' : `${patient.affected_side} - ${patient.affected_area}`
+
   return (
     <div className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant flex flex-col justify-between hover:shadow-sm transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-3 items-center">
           <div className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center text-title-lg font-bold">
-            {patient.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
           </div>
           <div>
             <h3 className="text-body-lg font-display font-semibold text-on-surface">
               {patient.name}
             </h3>
             <p className="text-body-sm text-on-surface-variant">
-              Patient ID: {patient.id.slice(0, 8)}
+              {displayText}
             </p>
           </div>
         </div>

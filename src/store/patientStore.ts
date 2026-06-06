@@ -4,7 +4,9 @@ import { supabase } from '../utils/db'
 
 interface Patient { 
     id: string,
-    name: string
+    name: string,
+    affected_area?: string,
+    affected_side?: string
 }
 
 interface PatientState {
@@ -18,22 +20,20 @@ const usePatientStore = create<PatientState>((set) => ({
     isLoading: false,
     error: null,
     patients: null,
-
-
+    
+    //function to fetch patients
     fetchPatients: async() => {
         set({isLoading: true, error: null})
 
         try {
+            //queries all patient table rows and columns that includes everything 
             const {data, error} = await supabase.from('patients').select('*')
 
             if(error) throw error
 
             if(!data) throw new Error('No patients found')
 
-                if(data) {
-                    console.log(data)
-                }
-
+            //sets all patient data to the patients state and sets isLoading to false
             set({patients: data, isLoading: false})
 
 
