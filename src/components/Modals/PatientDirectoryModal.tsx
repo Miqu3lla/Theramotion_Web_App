@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import PatientCard from '../Homepage/PatientCard';
 
 interface Patient {
