@@ -8,9 +8,10 @@ interface Patient {
 
 interface PatientCardProps {
   patient: Patient;
+  onViewProfile?: (patient: Patient) => void;
 }
 
-export default function PatientCard({ patient }: PatientCardProps) {
+export default function PatientCard({ patient, onViewProfile }: PatientCardProps) {
 
   const initials = [patient.first_name?.[0], patient.last_name?.[0]]
     .filter(Boolean)
@@ -59,7 +60,10 @@ export default function PatientCard({ patient }: PatientCardProps) {
         <button className="flex-1 bg-surface-container-lowest text-on-surface py-2 px-4 rounded-md font-label-md border border-outline-variant hover:bg-surface-container transition-colors text-center font-semibold">
           Log Note
         </button>
-        <button className="flex-1 bg-primary text-on-primary py-2 px-4 rounded-md font-label-md hover:bg-primary-container transition-colors text-center font-semibold">
+        <button
+          onClick={() => onViewProfile?.(patient)}
+          className="flex-1 bg-primary text-on-primary py-2 px-4 rounded-md font-label-md hover:bg-primary-container transition-colors text-center font-semibold"
+        >
           View Profile
         </button>
       </div>

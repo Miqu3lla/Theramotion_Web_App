@@ -23,12 +23,13 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="flex justify-center mb-6">
-        <img 
-          alt="Theramotion Brand Logo" 
-          className="h-16 w-auto object-contain" 
-          src="https://lh3.googleusercontent.com/aida/AP1WRLt2WG-meETgpXMNJFCgP1SU0TAYamhONCcwrh7FwxBBj_8V01EBXb2MnQGgcM5h1S_jYT04IWSIltJc6oC-PM4V9yT_aMtyNTUGbE14cZYHVAtgSCI2mD3LBBzWOT9kNLTC4Aukx1UrbMMWKEvJCMaOU6eBzPBYshpwdpfpfKPpsfQi0bxSPDeGIei2hNl5MoBPyvYNtqgNIse6_JQSVAYLFZql1Z_VTRg6w9gzm3CZkzZmltzQoDqQm6M"
-        />
+      {/* Inline SVG logo — no external CDN request on the unauthenticated login
+          page, which would expose visitor IPs to a third party before auth. */}
+      <div className="flex justify-center items-center gap-3 mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="currentColor" className="text-primary" aria-hidden="true">
+          <path d="M116-410q-21 0-35.5-14.5T66-460q0-21 14.5-35.5T116-510h128l108-306q8-23 29-35.5t45-8.5q24 4 41 21t22 40l105 450 63-146q9-20 28.5-32.5T730-540h114q21 0 35.5 14.5T894-490q0 21-14.5 35.5T844-440H753l-83 194q-9 20-28 32t-43 7q-23-4-40.5-20.5T536-267L434-703l-87 248q-8 23-28.5 34T274-410H116Z"/>
+        </svg>
+        <span className="text-2xl font-bold text-primary" aria-label="Theramotion">Theramotion</span>
       </div>
       <div className="text-center mb-10">
         <h2 className="text-headline-md font-headline-md font-semibold text-on-surface mb-1">Welcome back</h2>
