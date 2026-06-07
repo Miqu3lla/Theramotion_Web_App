@@ -1,14 +1,10 @@
 import { create } from 'zustand'
 import { supabase } from '../utils/db'
+import type { Patient } from '../hooks/usePatientSearch'
 
 
-interface Patient {
-    id: string,
-    first_name?: string,
-    last_name?: string,
-    affected_area?: string,
-    affected_side?: string
-}
+// Patient type is defined once in usePatientSearch and re-used here to avoid
+// duplicate declarations that cause TypeScript structural-typing mismatches.
 
 interface ExerciseScore {
     exercise_type: string,
@@ -79,26 +75,27 @@ const usePatientStore = create<PatientState>((set) => ({
                 })
                 .slice(0, 3)
 
-            // Step 3 — get the single most recent score for this patient
-            // recommendation_logs has no exercise_type column, so one score applies to all exercises
-            const { data: logs, error: logsError } = await supabase
-                .from('recommendation_logs')
-                .select('latest_form_score')
-                .eq('patient_id', patientId)
-                .order('created_at', { ascending: false }) // newest entry first
-                .limit(1)
+            // Step 3 — for each exercise, fetch its own most recent score from recommendation_logs
+            const scores: ExerciseScore[] = await Promise.all(
+                recentExercises.map(async (exercise) => {
+                    const { data: logs, error: logsError } = await supabase
+                        .from('recommendation_logs')
+                        .select('latest_form_score')
+                        .eq('patient_id', patientId)
+                        .eq('exercise_type', exercise.exercise_type)
+                        .order('created_at', { ascending: false }) // newest entry first
+                        .limit(1)
 
-            if (logsError) throw logsError
+                    if (logsError) throw logsError
 
-            const latestScore = logs?.[0]?.latest_form_score ?? null
+                    return {
+                        exercise_type: exercise.exercise_type,
+                        latest_form_score: logs?.[0]?.latest_form_score ?? null,
+                    }
+                })
+            )
 
-            // Step 4 — pair the 3 unique recent exercises with the latest score
-            const scores: ExerciseScore[] = recentExercises.map((exercise) => ({
-                exercise_type: exercise.exercise_type,
-                latest_form_score: latestScore,
-            }))
-
-            // Step 5 — merge into the cache without overwriting other patients' data
+            // Step 4 — merge into the cache without overwriting other patients' data
             set((state) => ({
                 patientPerformanceScores: {
                     ...state.patientPerformanceScores,
