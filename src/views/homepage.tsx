@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import PatientCard from '../components/Homepage/PatientCard';
 import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
+import PatientPerformanceModal from '../components/Modals/PatientPerformanceModal';
 import Pagination from '../components/ui/Pagination';
 import { usePatientSearch } from '../hooks/usePatientSearch';
 
@@ -23,6 +24,7 @@ export default function Homepage() {
 
   const { search, setSearch, filteredPatients } = usePatientSearch(patients)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedPatient, setSelectedPatient] = useState<{ id: string; first_name?: string; last_name?: string; affected_area?: string; affected_side?: string } | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
   const itemsPerPage = 8;
@@ -122,7 +124,7 @@ export default function Homepage() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {paginatedPatients.map((patient) => (
-                  <PatientCard key={patient.id} patient={patient} />
+                  <PatientCard key={patient.id} patient={patient} onViewProfile={setSelectedPatient} />
                 ))}
               </div>
               
@@ -139,10 +141,14 @@ export default function Homepage() {
         </section>
       </main>
       
-      <PatientDirectoryModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        patients={patients} 
+      <PatientDirectoryModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        patients={patients}
+      />
+      <PatientPerformanceModal
+        patient={selectedPatient}
+        onClose={() => setSelectedPatient(null)}
       />
     </div>
   );

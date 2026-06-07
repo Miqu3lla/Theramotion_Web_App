@@ -17,6 +17,7 @@ interface ExerciseScore {
 
 interface PatientState {
     isLoading: boolean,
+    isLoadingScores: boolean,
     error: string | null,
     patients: Patient[] | null,
     patientPerformanceScores: Record<string, ExerciseScore[]>,
@@ -26,10 +27,13 @@ interface PatientState {
 
 const usePatientStore = create<PatientState>((set) => ({
     isLoading: false,
+    isLoadingScores: false,
     error: null,
     patients: null,
+    // keyed by patient id so each patient's scores are cached separately
     patientPerformanceScores: {},
 
+    // Fetches all patients from the patients table and stores them in state
     fetchPatients: async () => {
         set({ isLoading: true, error: null })
 
@@ -47,49 +51,61 @@ const usePatientStore = create<PatientState>((set) => ({
         }
     },
 
+    // Fetches all exercises for a patient and pairs each with the patient's latest overall score
     fetchPatientPerformanceScores: async (patientId: string) => {
-        set({ isLoading: true, error: null })
+        set({ isLoadingScores: true, error: null })
 
         try {
-            // Fetch all exercises for this patient from form_predictions
+            // Step 1 — get exercises newest first so deduplication keeps the most recent of each type
             const { data: predictions, error: predictionsError } = await supabase
                 .from('form_predictions')
                 .select('exercise_type')
                 .eq('patient_id', patientId)
+                .order('created_at', { ascending: false })
 
             if (predictionsError) throw predictionsError
 
-            // For each exercise, fetch the latest_form_score from recommendation_logs
-            const scores: ExerciseScore[] = await Promise.all(
-                (predictions ?? []).map(async (prediction) => {
-                    const { data: logs, error: logsError } = await supabase
-                        .from('recommendation_logs')
-                        .select('latest_form_score')
-                        .eq('patient_id', patientId)
-                        .eq('exercise_type', prediction.exercise_type)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-
-                    if (logsError) throw logsError
-
-                    return {
-                        exercise_type: prediction.exercise_type,
-                        latest_form_score: logs?.[0]?.latest_form_score ?? null,
-                    }
+            // Step 2 — deduplicate by exercise_type (first occurrence = most recent) then cap at 3
+            const seen = new Set<string>()
+            const recentExercises = (predictions ?? [])
+                .filter(p => {
+                    if (seen.has(p.exercise_type)) return false
+                    seen.add(p.exercise_type)
+                    return true
                 })
-            )
+                .slice(0, 3)
 
+            // Step 3 — get the single most recent score for this patient
+            // recommendation_logs has no exercise_type column, so one score applies to all exercises
+            const { data: logs, error: logsError } = await supabase
+                .from('recommendation_logs')
+                .select('latest_form_score')
+                .eq('patient_id', patientId)
+                .order('created_at', { ascending: false }) // newest entry first
+                .limit(1)
+
+            if (logsError) throw logsError
+
+            const latestScore = logs?.[0]?.latest_form_score ?? null
+
+            // Step 4 — pair the 3 unique recent exercises with the latest score
+            const scores: ExerciseScore[] = recentExercises.map((exercise) => ({
+                exercise_type: exercise.exercise_type,
+                latest_form_score: latestScore,
+            }))
+
+            // Step 5 — merge into the cache without overwriting other patients' data
             set((state) => ({
                 patientPerformanceScores: {
                     ...state.patientPerformanceScores,
                     [patientId]: scores,
                 },
-                isLoading: false,
+                isLoadingScores: false,
             }))
 
         } catch (error: any) {
             console.error('Error fetching patient performance scores:', error)
-            set({ isLoading: false, error: error.message })
+            set({ isLoadingScores: false, error: error.message })
         }
     },
 

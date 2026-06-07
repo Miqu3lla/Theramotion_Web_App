@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import PatientCard from '../Homepage/PatientCard';
+import PatientPerformanceModal from './PatientPerformanceModal';
 import { usePatientSearch, Patient } from '../../hooks/usePatientSearch';
 
 
@@ -10,11 +12,15 @@ interface PatientDirectoryModalProps {
 
 export default function PatientDirectoryModal({ isOpen, onClose, patients }: PatientDirectoryModalProps) {
   const { search, setSearch, filteredPatients } = usePatientSearch(patients);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
   if (!isOpen) return null;
 
 
+
+
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-surface w-full max-w-5xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-xl">
         <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
@@ -54,12 +60,17 @@ export default function PatientDirectoryModal({ isOpen, onClose, patients }: Pat
           ) : (
             <div className="flex flex-col gap-4">
               {filteredPatients.map((patient) => (
-                <PatientCard key={patient.id} patient={patient} />
+                <PatientCard key={patient.id} patient={patient} onViewProfile={setSelectedPatient} />
               ))}
             </div>
           )}
         </div>
       </div>
     </div>
+    <PatientPerformanceModal
+      patient={selectedPatient}
+      onClose={() => setSelectedPatient(null)}
+    />
+    </>
   );
 }
