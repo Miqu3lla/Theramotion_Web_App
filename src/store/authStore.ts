@@ -39,7 +39,7 @@ const useAuthStore = create<AuthState>((set) => ({
                 user: data.user
             })
         } catch (error: any) {
-            console.log(error)
+            console.error(error)
             set({
                 error: error.message || 'an error occured'
             })
@@ -48,9 +48,10 @@ const useAuthStore = create<AuthState>((set) => ({
         }
     },
 
-    
+
     logoutUser: async() =>{
-        set({isloading:true})
+        // Clear any prior error so stale login error messages don't persist after logout
+        set({ isloading: true, error: null })
         try {
             const{error} = await supabase.auth.signOut()
             if (error) {
@@ -60,7 +61,7 @@ const useAuthStore = create<AuthState>((set) => ({
                 user: null, error: null
             })
         } catch (error: any) {
-            console.log(error)
+            console.error(error)
             set({
                 error: error.message || 'an error occured'
             })

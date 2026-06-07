@@ -4,7 +4,7 @@ import useAuthStore from '../../store/authStore';
 import { motion } from 'framer-motion';
 
 export default function Navbar() {
-  const { logoutUser } = useAuthStore();
+  const { logoutUser, user } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -12,6 +12,23 @@ export default function Navbar() {
     await logoutUser();
     navigate('/login');
   };
+
+  // Derive initials from the user's full name (user_metadata) or email so we
+  // never need to load a third-party avatar URL, which would leak the user's
+  // IP to Google on every authenticated page load.
+  const avatarInitials = (() => {
+    const fullName: string =
+      user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+    if (fullName) {
+      const parts = fullName.trim().split(/\s+/);
+      return parts.length >= 2
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+        : parts[0][0].toUpperCase();
+    }
+    // Fall back to the first character of the email local part
+    const email = user?.email ?? '';
+    return email ? email[0].toUpperCase() : '?';
+  })();
 
   return (
     <header className="w-full z-40 border-b border-outline-variant shadow-sm bg-surface-container-lowest flex justify-between items-center px-8 h-16 transition-all duration-200">
@@ -22,9 +39,11 @@ export default function Navbar() {
           <h1 className="font-headline-md text-headline-md font-bold text-primary" style={{ fontSize: '20px' }}>Theramotion</h1>
         </div>
         {/* Navigation Links */}
+        {/* layoutId="navbar-indicator" is intentionally shared between the two
+            motion divs so framer-motion slides the indicator between links. */}
         <nav className="flex gap-6 h-full relative">
-          <Link 
-            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/home' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`} 
+          <Link
+            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/home' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
             to="/home"
           >
             Dashboard
@@ -37,8 +56,8 @@ export default function Navbar() {
               />
             )}
           </Link>
-          <Link 
-            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/notes' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`} 
+          <Link
+            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/notes' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
             to="/notes"
           >
             Notes
@@ -53,18 +72,19 @@ export default function Navbar() {
           </Link>
         </nav>
       </div>
-      
+
       <div className="flex items-center gap-6">
-        <button 
+        <button
           onClick={handleLogout}
           className="text-label-md font-bold text-on-surface-variant hover:text-error transition-colors"
         >
           Sign Out
         </button>
-        {/* Profile Avatar */}
-        <button className="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary overflow-hidden border border-outline-variant flex items-center justify-center shadow-sm">
-          <img alt="Clinician Avatar" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDckpXTtlWnkeBm1Dtu5AfBfUmpIcKIcu3Dt_1FcDqBPpxcS6fwIE_82Nt0PqeIDRBU5LaJ4oqcZa5qTYnARZPbxiAi-W7iHRmyIrtzat6MJLUBJjyT8kzyc9vlfcXBqMaA3evuc0jpcj8IU6Z1U03mcKo-JCRVdxuehReu6BolQ2CtR3yTDCykUXVFtKmNVwwQFKhN_jWi59D2FjUCCH6yVeBLNBmy8_YIky8YOcwQTy_IBaG1hMamtc6GdXXAow_oczSs6kP9JjdW"/>
-        </button>
+        {/* Avatar derived from the authenticated user's name/email — no external
+            CDN requests that would leak IP to third parties. */}
+        <div className="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary border border-outline-variant flex items-center justify-center shadow-sm text-label-md font-bold select-none">
+          {avatarInitials}
+        </div>
       </div>
     </header>
   );

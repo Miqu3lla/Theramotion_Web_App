@@ -55,12 +55,14 @@ function progressColor(score: number | null) {
 export default function PatientPerformanceModal({ patient, onClose }: PatientPerformanceModalProps) {
   const { fetchPatientPerformanceScores, patientPerformanceScores, isLoadingScores } = usePatientStore();
 
-  // Fetch scores whenever the selected patient changes
+  // Fetch scores whenever the selected patient changes.
+  // fetchPatientPerformanceScores is included to satisfy exhaustive-deps and
+  // avoid a stale closure (e.g., after HMR in development with React 19 strict mode).
   useEffect(() => {
     if (patient) {
       fetchPatientPerformanceScores(patient.id);
     }
-  }, [patient?.id]);
+  }, [patient?.id, fetchPatientPerformanceScores]);
 
   // Nothing to render if no patient is selected
   if (!patient) return null;
@@ -129,9 +131,9 @@ export default function PatientPerformanceModal({ patient, onClose }: PatientPer
             </div>
           ) : (
             <div className="flex flex-col">
-              {scores.map((exercise, index) => (
+              {scores.map((exercise) => (
                 <div
-                  key={index}
+                  key={exercise.exercise_type}
                   className="py-4 border-b border-outline-variant last:border-b-0"
                 >
                   <div className="flex justify-between items-center mb-2">

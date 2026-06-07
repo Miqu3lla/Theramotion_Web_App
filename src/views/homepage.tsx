@@ -1,22 +1,36 @@
 
 import usePatientStore from '../store/patientStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 import PatientCard from '../components/Homepage/PatientCard';
 import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
 import PatientPerformanceModal from '../components/Modals/PatientPerformanceModal';
 import Pagination from '../components/ui/Pagination';
 import { usePatientSearch } from '../hooks/usePatientSearch';
+import type { Patient } from '../hooks/usePatientSearch';
 
 export default function Homepage() {
   const { fetchPatients, patients, isLoading, error} = usePatientStore()
-  const greeting = (() => {
+
+  // Memoised so the greeting string is computed once on mount, not on every render.
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
-  })()
+  }, [])
 
+  // Memoised for the same reason — the formatted date string is stable for the
+  // entire session.
+  const currentDate = useMemo(() => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: 'numeric',
+    };
+    return new Date().toLocaleDateString("en-US", options);
+  }, [])
 
   useEffect(() => {
     fetchPatients()
@@ -24,7 +38,10 @@ export default function Homepage() {
 
   const { search, setSearch, filteredPatients } = usePatientSearch(patients)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedPatient, setSelectedPatient] = useState<{ id: string; first_name?: string; last_name?: string; affected_area?: string; affected_side?: string } | null>(null)
+  // Single source of truth for the selected patient — shared by both the main
+  // grid and the directory modal so only one PatientPerformanceModal is ever
+  // rendered, preventing duplicate Supabase fetches.
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
   const itemsPerPage = 8;
@@ -34,25 +51,6 @@ export default function Homepage() {
     currentPage * itemsPerPage
   );
 
-  //function to get the current date
-  const getCurrentDate = () => {
-     const date = new Date()
-    //use Intl.datetimeFormatOptions to let typescript know that this is a valid date format
-     const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: 'numeric'
-
-      }
-      return date.toLocaleDateString("en-US", options)
-  }
-
-
-  
-  
-  
-
   return (
     <div className="flex-1 w-full bg-surface">
 
@@ -61,27 +59,27 @@ export default function Homepage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-8">
           <div>
             <p className="text-body-md text-on-surface-variant mb-2">
-              {getCurrentDate()}
+              {currentDate}
             </p>
             <h1 className="text-display font-display font-bold text-on-surface">
               {greeting}
             </h1>
           </div>
-          
+
           <div className="mt-6 md:mt-0 relative w-full md:w-80">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <input 
+            <input
               type="text"
               value={search}
               onChange={e => {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Find by name, ID, or condition..." 
+              placeholder="Find by name, ID, or condition..."
               className="w-full pl-10 pr-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-body-md"
             />
           </div>
@@ -93,7 +91,7 @@ export default function Homepage() {
             <h2 className="text-title-lg font-display font-bold text-on-surface">
               Patients
             </h2>
-            <button 
+            <button
               onClick={() => setIsModalOpen(true)}
               className="text-primary font-label-md font-bold hover:text-primary-container flex items-center gap-1"
             >
@@ -103,7 +101,7 @@ export default function Homepage() {
               </svg>
             </button>
           </div>
-          
+
           {isLoading ? (
             <div className="flex items-center justify-center p-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -127,8 +125,8 @@ export default function Homepage() {
                   <PatientCard key={patient.id} patient={patient} onViewProfile={setSelectedPatient} />
                 ))}
               </div>
-              
-              <Pagination 
+
+              <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 itemsPerPage={itemsPerPage}
@@ -140,11 +138,14 @@ export default function Homepage() {
           )}
         </section>
       </main>
-      
+
+      {/* Directory modal passes onViewProfile up so both it and the main grid
+          share a single PatientPerformanceModal instance below. */}
       <PatientDirectoryModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         patients={patients}
+        onViewProfile={setSelectedPatient}
       />
       <PatientPerformanceModal
         patient={selectedPatient}

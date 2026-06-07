@@ -38,7 +38,11 @@ const usePatientStore = create<PatientState>((set) => ({
         set({ isLoading: true, error: null })
 
         try {
-            const { data, error } = await supabase.from('patients').select('*')
+            // Select only the columns the UI consumes — avoids over-fetching PHI
+            // that may exist in other columns (OWASP API3: Excessive Data Exposure).
+            const { data, error } = await supabase
+                .from('patients')
+                .select('id, first_name, last_name, affected_area, affected_side')
 
             if (error) throw error
             if (!data) throw new Error('No patients found')
