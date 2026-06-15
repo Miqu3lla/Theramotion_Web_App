@@ -8,9 +8,11 @@ import PatientPerformanceModal from '../components/Modals/PatientPerformanceModa
 import Pagination from '../components/ui/Pagination';
 import { usePatientSearch } from '../hooks/usePatientSearch';
 import type { Patient } from '../hooks/usePatientSearch';
+import { supabase } from '../utils/db';
 
 export default function Homepage() {
   const { fetchPatients, patients, isLoading, error} = usePatientStore()
+  const [activePatientIds, setActivePatientIds] = useState<string[]>([]);
 
   // Memoised so the greeting string is computed once on mount, not on every render.
   const greeting = useMemo(() => {
@@ -32,9 +34,29 @@ export default function Homepage() {
     return new Date().toLocaleDateString("en-US", options);
   }, [])
 
+  //useEffect to fetch all patients
   useEffect(() => {
     fetchPatients()
   }, [fetchPatients])
+
+  //useEffect to track patients in session using supabase Presence
+  useEffect(() => {
+    const patientSub = supabase.channel('tracking')
+
+    patientSub.on('presence', {event: 'sync' }, () => {
+      const newState = patientSub.presenceState()
+
+      const activePatients = Object.values(newState).flat().map((presence: any) => presence.patient_id);
+
+      setActivePatientIds(activePatients)
+    })
+
+    patientSub.subscribe()
+
+    return () => {
+      supabase.removeChannel(patientSub)
+    }
+  }, []);
 
   const { search, setSearch, filteredPatients } = usePatientSearch(patients)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -122,7 +144,12 @@ export default function Homepage() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {paginatedPatients.map((patient) => (
-                  <PatientCard key={patient.id} patient={patient} onViewProfile={setSelectedPatient} />
+                  <PatientCard 
+                    key={patient.id} 
+                    patient={patient} 
+                    onViewProfile={setSelectedPatient} 
+                    isActive={activePatientIds.includes(patient.id)}
+                  />
                 ))}
               </div>
 
@@ -146,6 +173,7 @@ export default function Homepage() {
         onClose={() => setIsModalOpen(false)}
         patients={patients}
         onViewProfile={setSelectedPatient}
+        activePatientIds={activePatientIds}
       />
       <PatientPerformanceModal
         patient={selectedPatient}
