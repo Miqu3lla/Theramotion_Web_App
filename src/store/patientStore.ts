@@ -56,7 +56,7 @@ const usePatientStore = create<PatientState>((set) => ({
         set({ isLoadingScores: true, error: null })
 
         try {
-            // Step 1 — get exercises newest first so deduplication keeps the most recent of each type
+            // fetches the exercise_type based on patient id and orders it by the created_at column
             const { data: predictions, error: predictionsError } = await supabase
                 .from('form_predictions')
                 .select('exercise_type')
@@ -65,8 +65,9 @@ const usePatientStore = create<PatientState>((set) => ({
 
             if (predictionsError) throw predictionsError
 
-            // Step 2 — deduplicate by exercise_type (first occurrence = most recent) then cap at 3
+            //create a set to avoid duplicates
             const seen = new Set<string>()
+            //filters out if the same exercise type has been seen before so it only takes the most recent one
             const recentExercises = (predictions ?? [])
                 .filter(p => {
                     if (seen.has(p.exercise_type)) return false
@@ -75,8 +76,10 @@ const usePatientStore = create<PatientState>((set) => ({
                 })
                 .slice(0, 3)
 
-            // Step 3 — for each exercise, fetch its own most recent score from recommendation_logs
+            //for each exercise fetch all of their scores and out of all fetch the only recent one per exercise
+            //generates a promise.all function to put in a promise to all values and then put all scores in one go
             const scores: ExerciseScore[] = await Promise.all(
+                //maps the score with the matching patient id and also the matching exercise type 
                 recentExercises.map(async (exercise) => {
                     const { data: logs, error: logsError } = await supabase
                         .from('recommendation_logs')
@@ -89,6 +92,7 @@ const usePatientStore = create<PatientState>((set) => ({
                     if (logsError) throw logsError
 
                     return {
+                        //returns the exercise type and the most recent score for that exercise
                         exercise_type: exercise.exercise_type,
                         latest_form_score: logs?.[0]?.latest_form_score ?? null,
                     }

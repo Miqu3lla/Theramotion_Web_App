@@ -9,9 +9,10 @@ interface Patient {
 interface PatientCardProps {
   patient: Patient;
   onViewProfile?: (patient: Patient) => void;
+  isActive?: boolean;
 }
 
-export default function PatientCard({ patient, onViewProfile }: PatientCardProps) {
+export default function PatientCard({ patient, onViewProfile, isActive = false }: PatientCardProps) {
 
   const initials = [patient.first_name?.[0], patient.last_name?.[0]]
     .filter(Boolean)
@@ -36,8 +37,9 @@ export default function PatientCard({ patient, onViewProfile }: PatientCardProps
             </p>
           </div>
         </div>
-        <div className="px-2 py-1 bg-surface-container text-on-surface-variant rounded border border-outline-variant text-[10px] font-bold uppercase tracking-wider">
-          Active
+        <div className={`px-2 py-1 rounded border text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isActive ? 'bg-green-100 text-green-700 border-green-200' : 'bg-surface-container text-on-surface-variant border-outline-variant'}`}>
+          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>}
+          {isActive ? 'Active' : 'Inactive'}
         </div>
       </div>
       
