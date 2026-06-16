@@ -1,4 +1,5 @@
-import { X, Download, FileQuestion } from 'lucide-react';
+import { useState } from 'react';
+import { X, Download, FileQuestion, ShieldAlert } from 'lucide-react';
 
 // What kind of in-browser preview a file supports, derived from its extension.
 // 'office' covers Word/Excel/PowerPoint, shown via the Microsoft Office viewer.
@@ -18,7 +19,14 @@ interface FilePreviewModalProps {
 }
 
 export default function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
+  // Office preview forwards the file to Microsoft's hosted viewer, so it's gated
+  // behind explicit consent. Tracking the consented URL (rather than a boolean
+  // reset in an effect) means consent auto-resets when a different file opens.
+  const [consentedUrl, setConsentedUrl] = useState<string | null>(null);
+
   if (!file) return null;
+
+  const officeConsented = consentedUrl === file.url;
 
   return (
     <div
@@ -54,13 +62,40 @@ export default function FilePreviewModal({ file, onClose, onDownload }: FilePrev
           ) : file.kind === 'pdf' ? (
             <iframe src={file.url} title={file.name} className="w-full h-[78vh] bg-white" />
           ) : file.kind === 'office' ? (
-            // Word/Excel/PowerPoint rendered by Microsoft's hosted Office viewer,
-            // which fetches the (publicly reachable) signed URL and renders it.
-            <iframe
-              src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
-              title={file.name}
-              className="w-full h-[78vh] bg-white"
-            />
+            officeConsented ? (
+              // Word/Excel/PowerPoint rendered by Microsoft's hosted Office viewer.
+              <iframe
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
+                title={file.name}
+                className="w-full h-[78vh] bg-white"
+              />
+            ) : (
+              // Consent gate: previewing this file sends it off-platform to a
+              // third party, so default to download and require an explicit opt-in.
+              <div className="text-center p-12 max-w-md mx-auto">
+                <ShieldAlert className="h-12 w-12 mx-auto text-on-surface-variant mb-4 opacity-70" />
+                <p className="text-body-md text-on-surface mb-1">Preview uses an external service</p>
+                <p className="text-body-sm text-on-surface-variant mb-6">
+                  To preview Office documents in the browser, this file is sent to
+                  Microsoft's online viewer (view.officeapps.live.com). For sensitive
+                  data, download it instead to open locally.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={onDownload}
+                    className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg font-label-md font-semibold hover:bg-primary-container hover:text-on-primary-container transition-colors"
+                  >
+                    <Download className="h-4 w-4" /> Download file
+                  </button>
+                  <button
+                    onClick={() => setConsentedUrl(file.url)}
+                    className="inline-flex items-center justify-center gap-2 border border-outline-variant text-on-surface px-5 py-2.5 rounded-lg font-label-md font-semibold hover:bg-surface-container transition-colors"
+                  >
+                    Preview with Microsoft viewer
+                  </button>
+                </div>
+              </div>
+            )
           ) : file.kind === 'text' ? (
             // Rendered by us on a white panel so it isn't subject to the
             // browser's dark default styling for raw text files.
