@@ -104,3 +104,22 @@ body {
   margin: 0;
   min-height: 100vh;
 }
+
+/* Print: isolate the single note being printed (#print-root) and hide the rest
+   of the app chrome so the browser print dialog shows a clean document. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #print-root,
+  #print-root * {
+    visibility: visible;
+  }
+
+  #print-root {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+}
