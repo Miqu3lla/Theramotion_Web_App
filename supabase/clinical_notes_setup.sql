@@ -65,10 +65,45 @@ create policy "Therapists delete own clinical notes"
   using (therapist_id = auth.uid());
 
 -- 3. Storage bucket for uploaded note files ---------------------------------
--- Private bucket; the app reads files via signed URLs.
-insert into storage.buckets (id, name, public)
-values ('clinical-notes', 'clinical-notes', false)
-on conflict (id) do nothing;
+-- Private bucket; the app reads files via signed URLs. Limited to 25MB and to
+-- the document/image types the app supports (videos and anything else are
+-- rejected at upload time). ON CONFLICT updates these limits if the bucket
+-- already exists.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'clinical-notes',
+  'clinical-notes',
+  false,
+  26214400, -- 25 MB in bytes
+  array[
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.oasis.opendocument.text',
+    'application/vnd.oasis.opendocument.spreadsheet',
+    'application/vnd.oasis.opendocument.presentation',
+    'application/rtf',
+    'application/json',
+    'text/plain',
+    'text/csv',
+    'text/markdown',
+    'text/rtf',
+    'image/png',
+    'image/jpeg',
+    'image/gif',
+    'image/webp',
+    'image/bmp',
+    'image/svg+xml',
+    'image/avif'
+  ]
+)
+on conflict (id) do update
+  set file_size_limit   = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
 
 -- Authenticated therapists can read uploaded note files.
 drop policy if exists "Authenticated read clinical note files" on storage.objects;

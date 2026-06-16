@@ -49,6 +49,44 @@ interface NoteState {
 
 const BUCKET = 'clinical-notes'
 
+// Browsers leave File.type empty for some text formats (.md, .log, .csv...),
+// which would upload as application/octet-stream and be rejected by the bucket's
+// allowed_mime_types. Map by extension so the upload sends a type the bucket
+// accepts. Must stay in sync with allowed_mime_types in clinical_notes_setup.sql.
+const MIME_BY_EXT: Record<string, string> = {
+    pdf: 'application/pdf',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ppt: 'application/vnd.ms-powerpoint',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    odt: 'application/vnd.oasis.opendocument.text',
+    ods: 'application/vnd.oasis.opendocument.spreadsheet',
+    odp: 'application/vnd.oasis.opendocument.presentation',
+    rtf: 'application/rtf',
+    json: 'application/json',
+    txt: 'text/plain',
+    log: 'text/plain',
+    csv: 'text/csv',
+    md: 'text/markdown',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    bmp: 'image/bmp',
+    svg: 'image/svg+xml',
+    avif: 'image/avif',
+}
+
+// Prefer the browser-reported type; fall back to the extension map.
+function contentTypeFor(file: File): string {
+    if (file.type) return file.type
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+    return MIME_BY_EXT[ext] ?? 'application/octet-stream'
+}
+
 const useNoteStore = create<NoteState>((set) => ({
     isLoading: false,
     isSaving: false,
@@ -105,7 +143,7 @@ const useNoteStore = create<NoteState>((set) => ({
                 const { error: uploadError } = await supabase
                     .storage
                     .from(BUCKET)
-                    .upload(path, file)
+                    .upload(path, file, { contentType: contentTypeFor(file) })
 
                 if (uploadError) throw uploadError
 
@@ -167,7 +205,7 @@ const useNoteStore = create<NoteState>((set) => ({
                 const { error: uploadError } = await supabase
                     .storage
                     .from(BUCKET)
-                    .upload(path, file)
+                    .upload(path, file, { contentType: contentTypeFor(file) })
 
                 if (uploadError) throw uploadError
 
