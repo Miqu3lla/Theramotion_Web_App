@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo } from 'react';
 import PatientCard from '../components/Homepage/PatientCard';
 import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
 import PatientPerformanceModal from '../components/Modals/PatientPerformanceModal';
+import PatientNotesModal from '../components/Modals/PatientNotesModal';
 import Pagination from '../components/ui/Pagination';
 import { usePatientSearch } from '../hooks/usePatientSearch';
 import type { Patient } from '../hooks/usePatientSearch';
@@ -64,6 +65,9 @@ export default function Homepage() {
   // grid and the directory modal so only one PatientPerformanceModal is ever
   // rendered, preventing duplicate Supabase fetches.
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+  // Separate selection for the notes modal so it can be open independently of
+  // the performance modal.
+  const [notesPatient, setNotesPatient] = useState<Patient | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
   const itemsPerPage = 8;
@@ -144,10 +148,11 @@ export default function Homepage() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {paginatedPatients.map((patient) => (
-                  <PatientCard 
-                    key={patient.id} 
-                    patient={patient} 
-                    onViewProfile={setSelectedPatient} 
+                  <PatientCard
+                    key={patient.id}
+                    patient={patient}
+                    onViewProfile={setSelectedPatient}
+                    onLogNote={setNotesPatient}
                     isActive={activePatientIds.includes(patient.id)}
                   />
                 ))}
@@ -173,11 +178,17 @@ export default function Homepage() {
         onClose={() => setIsModalOpen(false)}
         patients={patients}
         onViewProfile={setSelectedPatient}
+        onLogNote={setNotesPatient}
         activePatientIds={activePatientIds}
       />
       <PatientPerformanceModal
         patient={selectedPatient}
         onClose={() => setSelectedPatient(null)}
+      />
+      <PatientNotesModal
+        key={notesPatient?.id ?? 'none'}
+        patient={notesPatient}
+        onClose={() => setNotesPatient(null)}
       />
     </div>
   );

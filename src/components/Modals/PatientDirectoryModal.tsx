@@ -10,10 +10,11 @@ interface PatientDirectoryModalProps {
   // instance and a single source of truth for the selected patient, eliminating
   // the risk of duplicate Supabase fetches from two independent modal instances.
   onViewProfile: (patient: Patient) => void;
+  onLogNote: (patient: Patient) => void;
   activePatientIds: string[];
 }
 
-export default function PatientDirectoryModal({ isOpen, onClose, patients, onViewProfile, activePatientIds }: PatientDirectoryModalProps) {
+export default function PatientDirectoryModal({ isOpen, onClose, patients, onViewProfile, onLogNote, activePatientIds }: PatientDirectoryModalProps) {
   const { search, setSearch, filteredPatients } = usePatientSearch(patients);
 
   if (!isOpen) return null;
@@ -58,7 +59,7 @@ export default function PatientDirectoryModal({ isOpen, onClose, patients, onVie
           ) : (
             <div className="flex flex-col gap-4">
               {filteredPatients.map((patient) => (
-                <PatientCard key={patient.id} patient={patient} onViewProfile={onViewProfile} isActive={activePatientIds.includes(patient.id)} />
+                <PatientCard key={patient.id} patient={patient} onViewProfile={onViewProfile} onLogNote={onLogNote} isActive={activePatientIds.includes(patient.id)} />
               ))}
             </div>
           )}
