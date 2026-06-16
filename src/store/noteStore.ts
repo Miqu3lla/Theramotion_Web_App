@@ -87,6 +87,14 @@ function contentTypeFor(file: File): string {
     return MIME_BY_EXT[ext] ?? 'application/octet-stream'
 }
 
+// Safely extract a message from an unknown caught value (catch clauses are
+// typed `unknown`), so we never assume `.message` exists on a non-Error.
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) return error.message
+    if (typeof error === 'string') return error
+    return 'An unexpected error occurred.'
+}
+
 const useNoteStore = create<NoteState>((set) => ({
     isLoading: false,
     isSaving: false,
@@ -115,9 +123,9 @@ const useNoteStore = create<NoteState>((set) => ({
                 isLoading: false,
             }))
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error fetching clinical notes:', error)
-            set({ isLoading: false, error: error.message })
+            set({ isLoading: false, error: getErrorMessage(error) })
         }
     },
 
@@ -164,7 +172,12 @@ const useNoteStore = create<NoteState>((set) => ({
                 .select('id, patient_id, therapist_id, title, content, file_url, file_name, created_at, updated_at')
                 .single()
 
-            if (error) throw error
+            if (error) {
+                // Roll back the just-uploaded file so a failed insert doesn't
+                // leave an orphaned object in Storage.
+                if (filePath) await supabase.storage.from(BUCKET).remove([filePath])
+                throw error
+            }
 
             // Prepend the new note to that patient's cached list.
             set((state) => ({
@@ -177,9 +190,9 @@ const useNoteStore = create<NoteState>((set) => ({
 
             return true
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating clinical note:', error)
-            set({ isSaving: false, error: error.message })
+            set({ isSaving: false, error: getErrorMessage(error) })
             return false
         }
     },
@@ -229,7 +242,14 @@ const useNoteStore = create<NoteState>((set) => ({
                 .select('id, patient_id, therapist_id, title, content, file_url, file_name, created_at, updated_at')
                 .single()
 
-            if (error) throw error
+            if (error) {
+                // Roll back a newly uploaded replacement so a failed update
+                // doesn't orphan it; the old file is intentionally kept.
+                if (file && filePath && filePath !== oldPath) {
+                    await supabase.storage.from(BUCKET).remove([filePath])
+                }
+                throw error
+            }
 
             // Once the row is updated, clean up the now-orphaned old file. Done
             // last (and best-effort) so a storage hiccup can't lose the edit.
@@ -249,9 +269,9 @@ const useNoteStore = create<NoteState>((set) => ({
 
             return true
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error updating clinical note:', error)
-            set({ isSaving: false, error: error.message })
+            set({ isSaving: false, error: getErrorMessage(error) })
             return false
         }
     },
@@ -284,9 +304,9 @@ const useNoteStore = create<NoteState>((set) => ({
                 },
             }))
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error deleting clinical note:', error)
-            set({ error: error.message })
+            set({ error: getErrorMessage(error) })
         }
     },
 
@@ -303,7 +323,7 @@ const useNoteStore = create<NoteState>((set) => ({
             if (error) throw error
             return data?.signedUrl ?? null
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating signed URL:', error)
             return null
         }
