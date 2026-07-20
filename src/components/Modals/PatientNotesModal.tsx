@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { X, Plus, Printer, Trash2, Paperclip, FileText, NotebookPen, Eye, Download, Pencil, Check } from 'lucide-react';
-import useNoteStore, { ClinicalNote } from '../../store/noteStore';
+import useNoteStore from '../../store/noteStore';
+import { useClinicalNotes } from '../../hooks/useClinicalNotes';
+import type { ClinicalNote } from '../../types/models';
 import type { Patient } from '../../hooks/usePatientSearch';
 import FilePreviewModal, { PreviewFile, PreviewKind } from './FilePreviewModal';
 
@@ -51,7 +53,11 @@ function formatDate(iso: string) {
 }
 
 export default function PatientNotesModal({ patient, onClose }: PatientNotesModalProps) {
-  const { fetchNotes, createNote, updateNote, deleteNote, getFileUrl, notesByPatient, isLoading, isSaving, error } = useNoteStore();
+  const patientId = patient?.id;
+  const { data: notes = [], isLoading, error: queryError } = useClinicalNotes(patientId);
+  const { createNote, updateNote, deleteNote, getFileUrl, isSaving, error: storeError } = useNoteStore();
+  
+  const error = queryError?.message || storeError || null;
 
   const [tab, setTab] = useState<Tab>('all');
   const [title, setTitle] = useState('');
@@ -69,13 +75,6 @@ export default function PatientNotesModal({ patient, onClose }: PatientNotesModa
   // path so the preview's Download button can re-sign a download URL.
   const [preview, setPreview] = useState<(PreviewFile & { path: string }) | null>(null);
 
-  // Load this patient's notes when the modal opens. The parent gives this
-  // component a key={patient.id}, so it remounts per patient and the form/tab
-  // state above resets to its initial values without an effect.
-  const patientId = patient?.id;
-  useEffect(() => {
-    if (patientId) fetchNotes(patientId);
-  }, [patientId, fetchNotes]);
 
   // While the modal is open, stop the browser's default "open the dropped file"
   // behavior anywhere on the page, so a near-miss on the drop zone is harmless.
@@ -98,8 +97,6 @@ export default function PatientNotesModal({ patient, onClose }: PatientNotesModa
   };
 
   if (!patient) return null;
-
-  const notes = notesByPatient[patient.id];
 
   const initials = [patient.first_name?.[0], patient.last_name?.[0]]
     .filter(Boolean)

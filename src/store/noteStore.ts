@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../utils/db'
+import { queryClient } from '../lib/queryClient'
 
 // One clinical note row. Mirrors the public.clinical_notes table after the
 // columns added in supabase/clinical_notes_setup.sql.
@@ -32,12 +33,8 @@ interface UpdateNoteArgs {
 }
 
 interface NoteState {
-    isLoading: boolean
     isSaving: boolean
     error: string | null
-    // keyed by patient id so each patient's notes are cached separately
-    notesByPatient: Record<string, ClinicalNote[]>
-    fetchNotes: (patientId: string) => Promise<void>
     createNote: (args: CreateNoteArgs) => Promise<boolean>
     updateNote: (args: UpdateNoteArgs) => Promise<boolean>
     deleteNote: (noteId: string, patientId: string) => Promise<void>
@@ -96,38 +93,8 @@ function getErrorMessage(error: unknown): string {
 }
 
 const useNoteStore = create<NoteState>((set) => ({
-    isLoading: false,
     isSaving: false,
     error: null,
-    notesByPatient: {},
-
-    // Fetch every note for one patient, newest first.
-    fetchNotes: async (patientId: string) => {
-        set({ isLoading: true, error: null })
-
-        try {
-            const { data, error } = await supabase
-                .from('clinical_notes')
-                .select('id, patient_id, therapist_id, title, content, file_url, file_name, created_at, updated_at')
-                .eq('patient_id', patientId)
-                .order('created_at', { ascending: false })
-
-            if (error) throw error
-
-            // Merge into the cache without clobbering other patients' notes.
-            set((state) => ({
-                notesByPatient: {
-                    ...state.notesByPatient,
-                    [patientId]: data ?? [],
-                },
-                isLoading: false,
-            }))
-
-        } catch (error: unknown) {
-            console.error('Error fetching clinical notes:', error)
-            set({ isLoading: false, error: getErrorMessage(error) })
-        }
-    },
 
     // Create a note: optionally upload a file to Storage first, then insert the
     // row. Returns true on success so the modal can reset its form.
@@ -179,14 +146,10 @@ const useNoteStore = create<NoteState>((set) => ({
                 throw error
             }
 
-            // Prepend the new note to that patient's cached list.
-            set((state) => ({
-                notesByPatient: {
-                    ...state.notesByPatient,
-                    [patientId]: [data, ...(state.notesByPatient[patientId] ?? [])],
-                },
-                isSaving: false,
-            }))
+            // Invalidate the TanStack Query cache so the UI refetches the updated list.
+            queryClient.invalidateQueries({ queryKey: ['clinical-notes', patientId] })
+            
+            set({ isSaving: false })
 
             return true
 
@@ -202,8 +165,15 @@ const useNoteStore = create<NoteState>((set) => ({
         set({ isSaving: true, error: null })
 
         try {
-            const existing = useNoteStore.getState().notesByPatient[patientId] ?? []
-            const target = existing.find((n) => n.id === noteId)
+            // We just need the old file path. We can query the database for the current record.
+            const { data: target, error: fetchError } = await supabase
+                .from('clinical_notes')
+                .select('file_url, file_name')
+                .eq('id', noteId)
+                .single()
+
+            if (fetchError) throw fetchError
+
             const oldPath = target?.file_url ?? null
 
             // Start from the current attachment; adjust only if it changes.
@@ -257,15 +227,8 @@ const useNoteStore = create<NoteState>((set) => ({
                 await supabase.storage.from(BUCKET).remove([oldPath])
             }
 
-            set((state) => ({
-                notesByPatient: {
-                    ...state.notesByPatient,
-                    [patientId]: (state.notesByPatient[patientId] ?? []).map((n) =>
-                        n.id === noteId ? data : n
-                    ),
-                },
-                isSaving: false,
-            }))
+            queryClient.invalidateQueries({ queryKey: ['clinical-notes', patientId] })
+            set({ isSaving: false })
 
             return true
 
@@ -281,8 +244,14 @@ const useNoteStore = create<NoteState>((set) => ({
         set({ error: null })
 
         try {
-            const existing = useNoteStore.getState().notesByPatient[patientId] ?? []
-            const target = existing.find((n) => n.id === noteId)
+            // Fetch target to get the file url
+            const { data: target, error: fetchError } = await supabase
+                .from('clinical_notes')
+                .select('file_url')
+                .eq('id', noteId)
+                .single()
+
+            if (fetchError && fetchError.code !== 'PGRST116') throw fetchError
 
             const { error } = await supabase
                 .from('clinical_notes')
@@ -297,12 +266,7 @@ const useNoteStore = create<NoteState>((set) => ({
                 await supabase.storage.from(BUCKET).remove([target.file_url])
             }
 
-            set((state) => ({
-                notesByPatient: {
-                    ...state.notesByPatient,
-                    [patientId]: existing.filter((n) => n.id !== noteId),
-                },
-            }))
+            queryClient.invalidateQueries({ queryKey: ['clinical-notes', patientId] })
 
         } catch (error: unknown) {
             console.error('Error deleting clinical note:', error)
