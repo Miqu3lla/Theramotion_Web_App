@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import usePatientStore from '../../store/patientStore';
+import { usePerformanceScores } from '../../hooks/usePerformanceScores';
 
 interface Patient {
   id: string;
@@ -53,16 +52,7 @@ function progressColor(score: number | null) {
 }
 
 export default function PatientPerformanceModal({ patient, onClose }: PatientPerformanceModalProps) {
-  const { fetchPatientPerformanceScores, patientPerformanceScores, isLoadingScores } = usePatientStore();
-
-  // Fetch scores whenever the selected patient changes.
-  // fetchPatientPerformanceScores is included to satisfy exhaustive-deps and
-  // avoid a stale closure (e.g., after HMR in development with React 19 strict mode).
-  useEffect(() => {
-    if (patient) {
-      fetchPatientPerformanceScores(patient.id);
-    }
-  }, [patient?.id, fetchPatientPerformanceScores]);
+  const { data: scores = [], isLoading: isLoadingScores } = usePerformanceScores(patient?.id);
 
   // Nothing to render if no patient is selected
   if (!patient) return null;
@@ -79,8 +69,6 @@ export default function PatientPerformanceModal({ patient, onClose }: PatientPer
       ? 'Both arms and legs'
       : `${patient.affected_side} - ${patient.affected_area}`;
 
-  // Pull this patient's cached exercise scores from the store
-  const scores = patientPerformanceScores[patient.id];
 
   return (
     <div
@@ -121,17 +109,18 @@ export default function PatientPerformanceModal({ patient, onClose }: PatientPer
 
         {/* Body */}
         <div className="px-6 pb-6 overflow-y-auto bg-surface flex-1">
-          {(isLoadingScores || scores === undefined) ? (
+          {isLoadingScores ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : scores.length === 0 ? (
-            <div className="text-center py-12 text-on-surface-variant text-body-md">
-              No exercise data found for this patient.
+            <div className="bg-surface-container-low border border-outline-variant border-dashed p-10 rounded-xl text-center">
+              <p className="text-body-lg text-on-surface-variant font-medium">No recent performance data</p>
+              <p className="text-body-sm text-on-surface-variant mt-1">This patient hasn't completed any tracked exercises recently.</p>
             </div>
           ) : (
-            <div className="flex flex-col">
-              {scores.map((exercise) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {scores.map((exercise, index) => (
                 <div
                   key={exercise.exercise_type}
                   className="py-4 border-b border-outline-variant last:border-b-0"
