@@ -12,7 +12,7 @@ import type { Patient } from '../hooks/usePatientSearch';
 import { supabase } from '../utils/db';
 
 export default function Homepage() {
-  const { fetchPatients, patients, isLoading, error} = usePatientStore()
+  const { fetchPatients, fetchUpcomingVisits, patients, isLoading, error} = usePatientStore()
   const [activePatientIds, setActivePatientIds] = useState<string[]>([]);
 
   // Memoised so the greeting string is computed once on mount, not on every render.
@@ -40,20 +40,33 @@ export default function Homepage() {
     fetchPatients()
   }, [fetchPatients])
 
-  //useEffect to track patients in session using supabase Presence
+  //useEffect to fetch each patient's upcoming home visit
   useEffect(() => {
+    fetchUpcomingVisits()
+  }, [fetchUpcomingVisits])
+
+  // useEffect to track which patients are currently in an active session
+  useEffect(() => {
+    // 1. Join the 'tracking' channel in Supabase
     const patientSub = supabase.channel('tracking')
 
+    // 2. Listen for 'sync' events on the 'presence' state
+    // This fires whenever a user joins or leaves the channel
     patientSub.on('presence', {event: 'sync' }, () => {
+      // 3. Get the latest online users
       const newState = patientSub.presenceState()
 
+      // 4. Extract just the patient IDs from the presence data
       const activePatients = Object.values(newState).flat().map((presence: any) => presence.patient_id);
 
+      // 5. Update our React state with the list of active patient IDs
       setActivePatientIds(activePatients)
     })
 
+    // 6. Start the subscription to begin receiving updates
     patientSub.subscribe()
 
+    // 7. Cleanup function: Leave the channel when the component unmounts
     return () => {
       supabase.removeChannel(patientSub)
     }

@@ -1,10 +1,7 @@
-interface Patient {
-  id: string;
-  first_name?: string;
-  last_name?: string;
-  affected_area?: string;
-  affected_side?: string;
-}
+import { useState } from 'react';
+import usePatientStore from '../../store/patientStore';
+import ScheduleVisitModal from '../Modals/ScheduleVisitModal';
+import type { Patient } from '../../hooks/usePatientSearch';
 
 interface PatientCardProps {
   patient: Patient;
@@ -14,6 +11,18 @@ interface PatientCardProps {
 }
 
 export default function PatientCard({ patient, onViewProfile, onLogNote, isActive = false }: PatientCardProps) {
+  const nextVisit = usePatientStore((s) => s.nextVisits[patient.id]);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+
+  // Human-readable label for the upcoming home visit, e.g. "Oct 24, 2:00 PM".
+  const nextVisitLabel = nextVisit
+    ? new Date(nextVisit.scheduled_at).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : null;
 
   const initials = [patient.first_name?.[0], patient.last_name?.[0]]
     .filter(Boolean)
@@ -23,6 +32,7 @@ export default function PatientCard({ patient, onViewProfile, onLogNote, isActiv
   const displayText = patient.affected_area === 'both' && patient.affected_side === 'both' ? 'Both arms and legs' : `${patient.affected_side} - ${patient.affected_area}`
 
   return (
+    <>
     <div className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant flex flex-col justify-between hover:shadow-sm transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-3 items-center">
@@ -49,7 +59,13 @@ export default function PatientCard({ patient, onViewProfile, onLogNote, isActiv
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span className="font-semibold mr-1">Last Session:</span> Oct 24, 2023
+          <span className="font-semibold mr-1">Home Visit:</span>
+          <button
+            onClick={() => setIsScheduleOpen(true)}
+            className="text-primary hover:underline font-medium"
+          >
+            {nextVisitLabel ?? 'Schedule visit'}
+          </button>
         </div>
         <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,5 +90,10 @@ export default function PatientCard({ patient, onViewProfile, onLogNote, isActiv
         </button>
       </div>
     </div>
+
+    {isScheduleOpen && (
+      <ScheduleVisitModal patient={patient} onClose={() => setIsScheduleOpen(false)} />
+    )}
+    </>
   );
 }

@@ -11,14 +11,26 @@ interface ExerciseScore {
     latest_form_score: number | null,
 }
 
+export interface HomeVisit {
+    id: string,
+    patient_id: string,
+    scheduled_at: string,
+    notes: string | null,
+    status: 'scheduled' | 'completed' | 'cancelled',
+}
+
 interface PatientState {
     isLoading: boolean,
     isLoadingScores: boolean,
     error: string | null,
     patients: Patient[] | null,
     patientPerformanceScores: Record<string, ExerciseScore[]>,
+    // The soonest upcoming visit per patient id (null = none scheduled).
+    nextVisits: Record<string, HomeVisit | null>,
     fetchPatients: () => Promise<void>,
     fetchPatientPerformanceScores: (patientId: string) => Promise<void>,
+    fetchUpcomingVisits: () => Promise<void>,
+    scheduleHomeVisit: (patientId: string, scheduledAt: string, notes?: string) => Promise<void>,
 }
 
 const usePatientStore = create<PatientState>((set) => ({
@@ -28,6 +40,8 @@ const usePatientStore = create<PatientState>((set) => ({
     patients: null,
     // keyed by patient id so each patient's scores are cached separately
     patientPerformanceScores: {},
+    // keyed by patient id, holds the soonest upcoming visit (or null)
+    nextVisits: {},
 
     // Fetches all patients from the patients table and stores them in state
     fetchPatients: async () => {
@@ -112,6 +126,64 @@ const usePatientStore = create<PatientState>((set) => ({
             console.error('Error fetching patient performance scores:', error)
             set({ isLoadingScores: false, error: error.message })
         }
+    },
+
+    // Fetches all of the therapist's upcoming (still-scheduled) visits and keeps
+    // only the soonest one per patient. RLS already scopes rows to the current
+    // therapist, so no therapist filter is needed here.
+    fetchUpcomingVisits: async () => {
+        try {
+            const nowIso = new Date().toISOString()
+
+            const { data, error } = await supabase
+                .from('home_visits')
+                .select('id, patient_id, scheduled_at, notes, status')
+                .eq('status', 'scheduled')
+                .gte('scheduled_at', nowIso)
+                .order('scheduled_at', { ascending: true }) // soonest first
+
+            if (error) throw error
+
+            // Because rows are sorted ascending, the first one seen for a patient
+            // is their soonest upcoming visit.
+            const map: Record<string, HomeVisit> = {}
+            for (const visit of (data ?? []) as HomeVisit[]) {
+                if (!map[visit.patient_id]) map[visit.patient_id] = visit
+            }
+
+            set({ nextVisits: map })
+
+        } catch (error: any) {
+            console.error('Error fetching upcoming visits:', error)
+            set({ error: error.message })
+        }
+    },
+
+    // Inserts a new scheduled visit and refreshes the cached next visit for the
+    // patient. therapist_id defaults to auth.uid() in the database.
+    scheduleHomeVisit: async (patientId, scheduledAt, notes) => {
+        const { data, error } = await supabase
+            .from('home_visits')
+            .insert({ patient_id: patientId, scheduled_at: scheduledAt, notes: notes ?? null })
+            .select('id, patient_id, scheduled_at, notes, status')
+            .single()
+
+        if (error) {
+            console.error('Error scheduling home visit:', error)
+            throw error
+        }
+
+        const newVisit = data as HomeVisit
+
+        // Only replace the cached next visit if this one is sooner (or none exists).
+        set((state) => {
+            const existing = state.nextVisits[patientId]
+            const isSooner = !existing || new Date(newVisit.scheduled_at) < new Date(existing.scheduled_at)
+            if (!isSooner) return {}
+            return {
+                nextVisits: { ...state.nextVisits, [patientId]: newVisit },
+            }
+        })
     },
 
 }))
