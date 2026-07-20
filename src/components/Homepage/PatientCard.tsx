@@ -1,18 +1,18 @@
 import { useState } from 'react';
-import usePatientStore from '../../store/patientStore';
 import ScheduleVisitModal from '../Modals/ScheduleVisitModal';
 import VisitHistoryModal from '../Modals/VisitHistoryModal';
 import type { Patient } from '../../hooks/usePatientSearch';
+import type { HomeVisit } from '../../store/patientStore';
 
 interface PatientCardProps {
   patient: Patient;
+  nextVisit?: HomeVisit | null;
   onViewProfile?: (patient: Patient) => void;
   onLogNote?: (patient: Patient) => void;
   isActive?: boolean;
 }
 
-export default function PatientCard({ patient, onViewProfile, onLogNote, isActive = false }: PatientCardProps) {
-  const nextVisit = usePatientStore((s) => s.nextVisits[patient.id]);
+export default function PatientCard({ patient, nextVisit = null, onViewProfile, onLogNote, isActive = false }: PatientCardProps) {
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 

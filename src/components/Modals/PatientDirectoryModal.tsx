@@ -1,5 +1,6 @@
 import PatientCard from '../Homepage/PatientCard';
 import { usePatientSearch, Patient } from '../../hooks/usePatientSearch';
+import type { HomeVisit } from '../../store/patientStore';
 
 
 interface PatientDirectoryModalProps {
@@ -12,9 +13,10 @@ interface PatientDirectoryModalProps {
   onViewProfile: (patient: Patient) => void;
   onLogNote: (patient: Patient) => void;
   activePatientIds: string[];
+  nextVisits: Record<string, HomeVisit>;
 }
 
-export default function PatientDirectoryModal({ isOpen, onClose, patients, onViewProfile, onLogNote, activePatientIds }: PatientDirectoryModalProps) {
+export default function PatientDirectoryModal({ isOpen, onClose, patients, onViewProfile, onLogNote, activePatientIds, nextVisits }: PatientDirectoryModalProps) {
   const { search, setSearch, filteredPatients } = usePatientSearch(patients);
 
   if (!isOpen) return null;
@@ -59,7 +61,7 @@ export default function PatientDirectoryModal({ isOpen, onClose, patients, onVie
           ) : (
             <div className="flex flex-col gap-4">
               {filteredPatients.map((patient) => (
-                <PatientCard key={patient.id} patient={patient} onViewProfile={onViewProfile} onLogNote={onLogNote} isActive={activePatientIds.includes(patient.id)} />
+                <PatientCard key={patient.id} patient={patient} nextVisit={nextVisits[patient.id] ?? null} onViewProfile={onViewProfile} onLogNote={onLogNote} isActive={activePatientIds.includes(patient.id)} />
               ))}
             </div>
           )}

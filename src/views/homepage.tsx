@@ -1,5 +1,4 @@
 
-import usePatientStore from '../store/patientStore';
 import { useEffect, useState, useMemo } from 'react';
 
 import PatientCard from '../components/Homepage/PatientCard';
@@ -8,11 +7,16 @@ import PatientPerformanceModal from '../components/Modals/PatientPerformanceModa
 import PatientNotesModal from '../components/Modals/PatientNotesModal';
 import Pagination from '../components/ui/Pagination';
 import { usePatientSearch } from '../hooks/usePatientSearch';
+import { usePatients } from '../hooks/usePatients';
+import { useUpcomingVisits } from '../hooks/useUpcomingVisits';
 import type { Patient } from '../hooks/usePatientSearch';
 import { supabase } from '../utils/db';
 
 export default function Homepage() {
-  const { fetchPatients, fetchUpcomingVisits, patients, isLoading, error} = usePatientStore()
+  // TanStack Query handles caching + loading + error for both fetches
+  const { data: patients = null, isLoading, error: patientsError } = usePatients()
+  const { data: nextVisits = {} } = useUpcomingVisits()
+  const error = patientsError?.message ?? null
   const [activePatientIds, setActivePatientIds] = useState<string[]>([]);
 
   // Memoised so the greeting string is computed once on mount, not on every render.
@@ -34,16 +38,6 @@ export default function Homepage() {
     };
     return new Date().toLocaleDateString("en-US", options);
   }, [])
-
-  //useEffect to fetch all patients
-  useEffect(() => {
-    fetchPatients()
-  }, [fetchPatients])
-
-  //useEffect to fetch each patient's upcoming home visit
-  useEffect(() => {
-    fetchUpcomingVisits()
-  }, [fetchUpcomingVisits])
 
   // useEffect to track which patients are currently in an active session
   useEffect(() => {
@@ -164,6 +158,7 @@ export default function Homepage() {
                   <PatientCard
                     key={patient.id}
                     patient={patient}
+                    nextVisit={nextVisits[patient.id] ?? null}
                     onViewProfile={setSelectedPatient}
                     onLogNote={setNotesPatient}
                     isActive={activePatientIds.includes(patient.id)}
@@ -193,6 +188,7 @@ export default function Homepage() {
         onViewProfile={setSelectedPatient}
         onLogNote={setNotesPatient}
         activePatientIds={activePatientIds}
+        nextVisits={nextVisits}
       />
       <PatientPerformanceModal
         patient={selectedPatient}
