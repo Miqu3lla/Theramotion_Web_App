@@ -10,28 +10,57 @@ interface ScheduleVisitModalProps {
 export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitModalProps) {
   const scheduleHomeVisit = usePatientStore((s) => s.scheduleHomeVisit);
 
-  const [scheduledAt, setScheduledAt] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');            // therapist-typed, e.g. "2:30"
+  const [meridiem, setMeridiem] = useState<'AM' | 'PM'>('AM');
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!patient) return null;
 
-  // Prevents scheduling a visit in the past. Format matches datetime-local input.
-  const minDateTime = new Date().toISOString().slice(0, 16);
+  // Prevents picking a date in the past. Format matches the date input (yyyy-mm-dd).
+  const minDate = new Date().toISOString().slice(0, 10);
+
+  // Parses a manually typed "h:mm" (or "h") string into 24-hour parts using the
+  // selected AM/PM. Returns null if it isn't a valid time.
+  const parseTime = (raw: string): { hours: number; minutes: number } | null => {
+    const match = raw.trim().match(/^(\d{1,2})(?::(\d{2}))?$/);
+    if (!match) return null;
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+    if (hours < 1 || hours > 12 || minutes > 59) return null;
+    // Convert 12-hour to 24-hour: 12 AM -> 0, 12 PM -> 12, otherwise add 12 for PM.
+    if (meridiem === 'AM') hours = hours === 12 ? 0 : hours;
+    else hours = hours === 12 ? 12 : hours + 12;
+    return { hours, minutes };
+  };
 
   const handleSave = async () => {
-    if (!scheduledAt) {
-      setError('Please pick a date and time.');
+    if (!date) {
+      setError('Please pick a date.');
       return;
     }
+    const parsed = parseTime(time);
+    if (!parsed) {
+      setError('Enter a time like 2:30 and choose AM or PM.');
+      return;
+    }
+
+    // Build the visit in the therapist's local time, then convert to a real ISO
+    // (UTC) string so it is stored unambiguously.
+    const [year, month, day] = date.split('-').map(Number);
+    const when = new Date(year, month - 1, day, parsed.hours, parsed.minutes);
+
+    if (when.getTime() < Date.now()) {
+      setError('That time is in the past.');
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
     try {
-      // datetime-local gives a local time with no zone; convert to a real ISO
-      // (UTC) string so it is stored unambiguously.
-      const iso = new Date(scheduledAt).toISOString();
-      await scheduleHomeVisit(patient.id, iso, notes.trim() || undefined);
+      await scheduleHomeVisit(patient.id, when.toISOString(), notes.trim() || undefined);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Could not schedule the visit.');
@@ -71,16 +100,42 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
         <div className="p-6 bg-surface flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="visit-date" className="text-body-sm font-semibold text-on-surface">
-              Visit date &amp; time
+              Visit date
             </label>
             <input
               id="visit-date"
-              type="datetime-local"
-              value={scheduledAt}
-              min={minDateTime}
-              onChange={(e) => setScheduledAt(e.target.value)}
+              type="date"
+              value={date}
+              min={minDate}
+              onChange={(e) => setDate(e.target.value)}
               className="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-primary"
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="visit-time" className="text-body-sm font-semibold text-on-surface">
+              Time
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="visit-time"
+                type="text"
+                inputMode="numeric"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                placeholder="2:30"
+                className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-primary"
+              />
+              <select
+                aria-label="AM or PM"
+                value={meridiem}
+                onChange={(e) => setMeridiem(e.target.value as 'AM' | 'PM')}
+                className="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-primary"
+              >
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
