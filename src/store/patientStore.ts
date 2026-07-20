@@ -145,12 +145,13 @@ const usePatientStore = create<PatientState>((set) => ({
                 .select('id, patient_id, scheduled_at, notes, status')
                 .eq('status', 'scheduled')
                 .gte('scheduled_at', nowLocalIso)
-                .order('scheduled_at', {ascending: true}) // soonest first
+                .order('scheduled_at', {ascending: false}) // latest upcoming first
 
             if (error) throw error
 
-            // Rows are sorted ascending (soonest first), so the first one seen for a patient
-            // is their soonest upcoming visit.
+            // Rows are sorted descending (latest first), so the first visit seen
+            // per patient is their furthest upcoming visit — matching the workflow
+            // where a new follow-up date is always added after each completed visit.
             const map: Record<string, HomeVisit> = {}
             for (const visit of (data ?? []) as HomeVisit[]) {
                 if (!map[visit.patient_id]) map[visit.patient_id] = visit
