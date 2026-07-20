@@ -52,7 +52,7 @@ function progressColor(score: number | null) {
 }
 
 export default function PatientPerformanceModal({ patient, onClose }: PatientPerformanceModalProps) {
-  const { data: scores = [], isLoading: isLoadingScores } = usePerformanceScores(patient?.id);
+  const { data: scores = [], isLoading: isLoadingScores, error: performanceError } = usePerformanceScores(patient?.id);
 
   // Nothing to render if no patient is selected
   if (!patient) return null;
@@ -112,6 +112,11 @@ export default function PatientPerformanceModal({ patient, onClose }: PatientPer
           {isLoadingScores ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : performanceError ? (
+            <div className="bg-error-container text-on-error-container p-4 rounded-md my-4">
+              <p className="text-body-md font-medium">Failed to load performance scores.</p>
+              <p className="text-body-sm mt-1">{performanceError.message}</p>
             </div>
           ) : scores.length === 0 ? (
             <div className="bg-surface-container-low border border-outline-variant border-dashed p-10 rounded-xl text-center">
