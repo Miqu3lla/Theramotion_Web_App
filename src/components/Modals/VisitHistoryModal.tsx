@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../../utils/db';
+import { useVisitHistory } from '../../hooks/useVisitHistory';
 import type { Patient } from '../../hooks/usePatientSearch';
 import type { HomeVisit } from '../../store/patientStore';
 
@@ -9,34 +8,8 @@ interface VisitHistoryModalProps {
 }
 
 export default function VisitHistoryModal({ patient, onClose }: VisitHistoryModalProps) {
-  const [visits, setVisits] = useState<HomeVisit[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!patient) return;
-
-    const fetchHistory = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const { data, error } = await supabase
-          .from('home_visits')
-          .select('id, patient_id, scheduled_at, notes, status')
-          .eq('patient_id', patient.id)
-          .order('scheduled_at', { ascending: false });
-
-        if (error) throw error;
-        setVisits(data as HomeVisit[]);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load visit history.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHistory();
-  }, [patient]);
+  const { data: visits = [], isLoading, error: queryError } = useVisitHistory(patient?.id);
+  const error = queryError?.message ?? null;
 
   if (!patient) return null;
 
