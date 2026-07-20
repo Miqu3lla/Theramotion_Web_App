@@ -56,20 +56,6 @@ export default function Navbar() {
               />
             )}
           </Link>
-          <Link
-            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/notes' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
-            to="/notes"
-          >
-            Notes
-            {location.pathname === '/notes' && (
-              <motion.div
-                layoutId="navbar-indicator"
-                className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
-                initial={false}
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              />
-            )}
-          </Link>
         </nav>
       </div>
 

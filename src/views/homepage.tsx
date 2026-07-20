@@ -1,5 +1,4 @@
 
-import usePatientStore from '../store/patientStore';
 import { useEffect, useState, useMemo } from 'react';
 
 import PatientCard from '../components/Homepage/PatientCard';
@@ -7,12 +6,17 @@ import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
 import PatientPerformanceModal from '../components/Modals/PatientPerformanceModal';
 import PatientNotesModal from '../components/Modals/PatientNotesModal';
 import Pagination from '../components/ui/Pagination';
-import { usePatientSearch } from '../hooks/usePatientSearch';
-import type { Patient } from '../hooks/usePatientSearch';
+import { usePatientSearch } from '../store/patientStore';
+import { usePatients } from '../hooks/usePatients';
+import { useUpcomingVisits } from '../hooks/useUpcomingVisits';
+import type { Patient } from '../types/models';
 import { supabase } from '../utils/db';
 
 export default function Homepage() {
-  const { fetchPatients, patients, isLoading, error} = usePatientStore()
+  // TanStack Query handles caching + loading + error for both fetches
+  const { data: patients = null, isLoading, error: patientsError } = usePatients()
+  const { data: nextVisits = {} } = useUpcomingVisits()
+  const error = patientsError?.message ?? null
   const [activePatientIds, setActivePatientIds] = useState<string[]>([]);
 
   // Memoised so the greeting string is computed once on mount, not on every render.
@@ -35,25 +39,28 @@ export default function Homepage() {
     return new Date().toLocaleDateString("en-US", options);
   }, [])
 
-  //useEffect to fetch all patients
+  // useEffect to track which patients are currently in an active session
   useEffect(() => {
-    fetchPatients()
-  }, [fetchPatients])
-
-  //useEffect to track patients in session using supabase Presence
-  useEffect(() => {
+    // 1. Join the 'tracking' channel in Supabase
     const patientSub = supabase.channel('tracking')
 
+    // 2. Listen for 'sync' events on the 'presence' state
+    // This fires whenever a user joins or leaves the channel
     patientSub.on('presence', {event: 'sync' }, () => {
+      // 3. Get the latest online users
       const newState = patientSub.presenceState()
 
+      // 4. Extract just the patient IDs from the presence data
       const activePatients = Object.values(newState).flat().map((presence: any) => presence.patient_id);
 
+      // 5. Update our React state with the list of active patient IDs
       setActivePatientIds(activePatients)
     })
 
+    // 6. Start the subscription to begin receiving updates
     patientSub.subscribe()
 
+    // 7. Cleanup function: Leave the channel when the component unmounts
     return () => {
       supabase.removeChannel(patientSub)
     }
@@ -61,12 +68,7 @@ export default function Homepage() {
 
   const { search, setSearch, filteredPatients } = usePatientSearch(patients)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  // Single source of truth for the selected patient — shared by both the main
-  // grid and the directory modal so only one PatientPerformanceModal is ever
-  // rendered, preventing duplicate Supabase fetches.
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
-  // Separate selection for the notes modal so it can be open independently of
-  // the performance modal.
   const [notesPatient, setNotesPatient] = useState<Patient | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -101,7 +103,7 @@ export default function Homepage() {
             <input
               type="text"
               value={search}
-              onChange={e => {
+              onChange={(e) => {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
@@ -130,7 +132,7 @@ export default function Homepage() {
 
           {isLoading ? (
             <div className="flex items-center justify-center p-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary">Loading...</div>
             </div>
           ) : error ? (
             <div className="bg-error-container text-on-error-container p-4 rounded-md">
@@ -151,6 +153,7 @@ export default function Homepage() {
                   <PatientCard
                     key={patient.id}
                     patient={patient}
+                    nextVisit={nextVisits[patient.id] ?? null}
                     onViewProfile={setSelectedPatient}
                     onLogNote={setNotesPatient}
                     isActive={activePatientIds.includes(patient.id)}
@@ -180,6 +183,7 @@ export default function Homepage() {
         onViewProfile={setSelectedPatient}
         onLogNote={setNotesPatient}
         activePatientIds={activePatientIds}
+        nextVisits={nextVisits}
       />
       <PatientPerformanceModal
         patient={selectedPatient}

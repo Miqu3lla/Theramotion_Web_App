@@ -22,9 +22,7 @@ const useAuthStore = create<AuthState>((set) => ({
     //login function
     LoginUser: async (email, password) => {
         set({ isloading: true, error: null })
-
         try {
-
             //use supabase built in login feature
             const {data, error} = await supabase.auth.signInWithPassword({
                 email,

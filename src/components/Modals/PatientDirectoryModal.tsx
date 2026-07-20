@@ -1,5 +1,6 @@
 import PatientCard from '../Homepage/PatientCard';
-import { usePatientSearch, Patient } from '../../hooks/usePatientSearch';
+import { usePatientSearch } from '../../store/patientStore';
+import type { Patient, HomeVisit } from '../../types/models';
 
 
 interface PatientDirectoryModalProps {
@@ -12,9 +13,10 @@ interface PatientDirectoryModalProps {
   onViewProfile: (patient: Patient) => void;
   onLogNote: (patient: Patient) => void;
   activePatientIds: string[];
+  nextVisits: Record<string, HomeVisit>;
 }
 
-export default function PatientDirectoryModal({ isOpen, onClose, patients, onViewProfile, onLogNote, activePatientIds }: PatientDirectoryModalProps) {
+export default function PatientDirectoryModal({ isOpen, onClose, patients, onViewProfile, onLogNote, activePatientIds, nextVisits }: PatientDirectoryModalProps) {
   const { search, setSearch, filteredPatients } = usePatientSearch(patients);
 
   if (!isOpen) return null;
@@ -44,7 +46,7 @@ export default function PatientDirectoryModal({ isOpen, onClose, patients, onVie
             <input
               type="text"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search patients in directory..."
               className="w-full pl-10 pr-4 py-3 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-body-md"
             />
@@ -59,7 +61,7 @@ export default function PatientDirectoryModal({ isOpen, onClose, patients, onVie
           ) : (
             <div className="flex flex-col gap-4">
               {filteredPatients.map((patient) => (
-                <PatientCard key={patient.id} patient={patient} onViewProfile={onViewProfile} onLogNote={onLogNote} isActive={activePatientIds.includes(patient.id)} />
+                <PatientCard key={patient.id} patient={patient} nextVisit={nextVisits[patient.id] ?? null} onViewProfile={onViewProfile} onLogNote={onLogNote} isActive={activePatientIds.includes(patient.id)} />
               ))}
             </div>
           )}
