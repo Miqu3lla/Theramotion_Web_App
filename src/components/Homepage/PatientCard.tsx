@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ScheduleVisitModal from '../Modals/ScheduleVisitModal';
 import VisitHistoryModal from '../Modals/VisitHistoryModal';
-import type { Patient } from '../../hooks/usePatientSearch';
+import type { Patient } from '../../types/models';
 import type { HomeVisit } from '../../types/models';
 
 interface PatientCardProps {

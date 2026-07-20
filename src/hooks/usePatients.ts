@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../utils/db'
-import type { Patient } from './usePatientSearch'
+import type { Patient } from '../types/models'
 
 // Fetches all patients from the patients table. Cached under ['patients'].
 export function usePatients() {

@@ -1,3 +1,11 @@
+export interface Patient {
+  id: string
+  first_name?: string
+  last_name?: string
+  affected_area?: string
+  affected_side?: string
+}
+
 export interface HomeVisit {
     id: string
     patient_id: string

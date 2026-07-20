@@ -6,10 +6,10 @@ import PatientDirectoryModal from '../components/Modals/PatientDirectoryModal';
 import PatientPerformanceModal from '../components/Modals/PatientPerformanceModal';
 import PatientNotesModal from '../components/Modals/PatientNotesModal';
 import Pagination from '../components/ui/Pagination';
-import { usePatientSearch } from '../hooks/usePatientSearch';
+import { usePatientSearch } from '../store/patientStore';
 import { usePatients } from '../hooks/usePatients';
 import { useUpcomingVisits } from '../hooks/useUpcomingVisits';
-import type { Patient } from '../hooks/usePatientSearch';
+import type { Patient } from '../types/models';
 import { supabase } from '../utils/db';
 
 export default function Homepage() {
@@ -108,7 +108,7 @@ export default function Homepage() {
             <input
               type="text"
               value={search}
-              onChange={e => {
+              onChange={(e) => {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}

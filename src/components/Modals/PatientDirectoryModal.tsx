@@ -1,6 +1,6 @@
 import PatientCard from '../Homepage/PatientCard';
-import { usePatientSearch, Patient } from '../../hooks/usePatientSearch';
-import type { HomeVisit } from '../../types/models';
+import { usePatientSearch } from '../../store/patientStore';
+import type { Patient, HomeVisit } from '../../types/models';
 
 
 interface PatientDirectoryModalProps {
@@ -46,7 +46,7 @@ export default function PatientDirectoryModal({ isOpen, onClose, patients, onVie
             <input
               type="text"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search patients in directory..."
               className="w-full pl-10 pr-4 py-3 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-body-md"
             />

@@ -13,6 +13,7 @@ export default function App() {
 
   const showNavbar = location.pathname !== '/login'
 
+  //checks if the user is logged in or not
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       useAuthStore.setState({ user: session?.user || null })

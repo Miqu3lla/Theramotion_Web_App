@@ -4,7 +4,7 @@ import { X, Plus, Printer, Trash2, Paperclip, FileText, NotebookPen, Eye, Downlo
 import useNoteStore from '../../store/noteStore';
 import { useClinicalNotes } from '../../hooks/useClinicalNotes';
 import type { ClinicalNote } from '../../types/models';
-import type { Patient } from '../../hooks/usePatientSearch';
+import type { Patient } from '../../types/models';
 import FilePreviewModal, { PreviewFile, PreviewKind } from './FilePreviewModal';
 
 interface PatientNotesModalProps {

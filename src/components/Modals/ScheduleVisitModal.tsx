@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import usePatientStore from '../../store/patientStore';
-import type { Patient } from '../../hooks/usePatientSearch';
+import type { Patient } from '../../types/models';
 
 interface ScheduleVisitModalProps {
   patient: Patient | null;
