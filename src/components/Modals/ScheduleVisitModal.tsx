@@ -49,7 +49,8 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
       return;
     }
 
-    // Build a Date object from the user's local date/time parts for validation.
+    // Store as a local time string so the DB value matches exactly what the
+    // therapist typed (e.g. 1:30 AM stays 1:30 AM in the DB, not converted to UTC).
     const [year, month, day] = date.split('-').map(Number);
     const when = new Date(year, month - 1, day, parsed.hours, parsed.minutes);
 
@@ -58,8 +59,7 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
       return;
     }
 
-    // Derive the local ISO string from the same `when` object using local getters.
-    // This avoids toISOString() which would convert to UTC and shift the time.
+    // Build a timezone-free ISO string from the local Date object's getters.
     const pad = (n: number) => String(n).padStart(2, '0');
     const localIso = `${when.getFullYear()}-${pad(when.getMonth() + 1)}-${pad(when.getDate())}T${pad(when.getHours())}:${pad(when.getMinutes())}:00`;
 

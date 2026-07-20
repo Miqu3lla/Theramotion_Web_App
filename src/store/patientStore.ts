@@ -133,18 +133,23 @@ const usePatientStore = create<PatientState>((set) => ({
     // therapist, so no therapist filter is needed here.
     fetchUpcomingVisits: async () => {
         try {
-            const nowIso = new Date().toISOString()
+            // Compare against local time to match how scheduled_at is stored —
+            // values like '2026-07-24T01:30:00' in the DB represent the local time
+            // the therapist typed, not UTC.
+            const now = new Date()
+            const pad = (n: number) => String(n).padStart(2, '0')
+            const nowLocalIso = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
 
             const { data, error } = await supabase
                 .from('home_visits')
                 .select('id, patient_id, scheduled_at, notes, status')
                 .eq('status', 'scheduled')
-                .gte('scheduled_at', nowIso)
-                .order('scheduled_at', { ascending: true }) // soonest first
+                .gte('scheduled_at', nowLocalIso)
+                .order('scheduled_at', {ascending: true}) // soonest first
 
             if (error) throw error
 
-            // Because rows are sorted ascending, the first one seen for a patient
+            // Rows are sorted ascending (soonest first), so the first one seen for a patient
             // is their soonest upcoming visit.
             const map: Record<string, HomeVisit> = {}
             for (const visit of (data ?? []) as HomeVisit[]) {

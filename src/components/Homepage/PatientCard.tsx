@@ -15,13 +15,16 @@ export default function PatientCard({ patient, onViewProfile, onLogNote, isActiv
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
   // Human-readable label for the upcoming home visit, e.g. "Oct 24, 2:00 PM".
+  // timeZone: 'UTC' prevents JS from applying the local offset to the stored value —
+  // since scheduled_at is stored as a local time string (no UTC conversion),
+  // displaying it in UTC reads it exactly as typed (e.g. 1:30 AM stays 1:30 AM).
   const nextVisitLabel = nextVisit
     ? new Date(nextVisit.scheduled_at).toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
-        timeZone: 'UTC', // Prevents local timezone (UTC+8) from shifting the date stored in the DB
+        timeZone: 'UTC',
       })
     : null;
 
