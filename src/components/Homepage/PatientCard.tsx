@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import usePatientStore from '../../store/patientStore';
 import ScheduleVisitModal from '../Modals/ScheduleVisitModal';
+import VisitHistoryModal from '../Modals/VisitHistoryModal';
 import type { Patient } from '../../hooks/usePatientSearch';
 
 interface PatientCardProps {
@@ -13,6 +14,7 @@ interface PatientCardProps {
 export default function PatientCard({ patient, onViewProfile, onLogNote, isActive = false }: PatientCardProps) {
   const nextVisit = usePatientStore((s) => s.nextVisits[patient.id]);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   // Human-readable label for the upcoming home visit, e.g. "Oct 24, 2:00 PM".
   // timeZone: 'UTC' prevents JS from applying the local offset to the stored value —
@@ -70,6 +72,12 @@ export default function PatientCard({ patient, onViewProfile, onLogNote, isActiv
           >
             {nextVisitLabel ?? 'Schedule visit'}
           </button>
+          <button
+            onClick={() => setIsHistoryOpen(true)}
+            className="ml-auto text-primary text-xs hover:bg-primary-container bg-surface-container-high px-2.5 py-1 rounded-md transition-colors"
+          >
+            History
+          </button>
         </div>
         <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,6 +105,10 @@ export default function PatientCard({ patient, onViewProfile, onLogNote, isActiv
 
     {isScheduleOpen && (
       <ScheduleVisitModal patient={patient} onClose={() => setIsScheduleOpen(false)} />
+    )}
+    
+    {isHistoryOpen && (
+      <VisitHistoryModal patient={patient} onClose={() => setIsHistoryOpen(false)} />
     )}
     </>
   );
