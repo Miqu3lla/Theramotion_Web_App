@@ -1,6 +1,6 @@
 import { useVisitHistory } from '../../hooks/useVisitHistory';
 import type { Patient } from '../../hooks/usePatientSearch';
-import type { HomeVisit } from '../../store/patientStore';
+import type { HomeVisit } from '../../types/models';
 
 interface VisitHistoryModalProps {
   patient: Patient | null;

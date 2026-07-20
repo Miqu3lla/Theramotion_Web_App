@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import usePatientStore from '../../store/patientStore';
+import { useScheduleVisit } from '../../hooks/useScheduleVisit';
 import type { Patient } from '../../hooks/usePatientSearch';
 
 interface ScheduleVisitModalProps {
@@ -8,7 +8,7 @@ interface ScheduleVisitModalProps {
 }
 
 export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitModalProps) {
-  const scheduleHomeVisit = usePatientStore((s) => s.scheduleHomeVisit);
+  const scheduleVisitMutation = useScheduleVisit();
 
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');            // therapist-typed, e.g. "2:30"
@@ -66,7 +66,11 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
     setIsSaving(true);
     setError(null);
     try {
-      await scheduleHomeVisit(patient.id, localIso, notes.trim() || undefined);
+      await scheduleVisitMutation.mutateAsync({
+        patientId: patient.id,
+        scheduledAt: localIso,
+        notes: notes.trim() || undefined
+      });
       onClose();
     } catch (err: any) {
       setError(err.message || 'Could not schedule the visit.');

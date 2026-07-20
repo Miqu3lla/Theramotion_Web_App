@@ -1,6 +1,6 @@
 import PatientCard from '../Homepage/PatientCard';
 import { usePatientSearch, Patient } from '../../hooks/usePatientSearch';
-import type { HomeVisit } from '../../store/patientStore';
+import type { HomeVisit } from '../../types/models';
 
 
 interface PatientDirectoryModalProps {

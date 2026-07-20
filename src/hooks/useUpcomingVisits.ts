@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../utils/db'
-import type { HomeVisit } from '../store/patientStore'
+import type { HomeVisit } from '../types/models'
 
 // Fetches all upcoming scheduled visits and keeps only the latest one per patient.
 // Cached under ['upcoming-visits'].

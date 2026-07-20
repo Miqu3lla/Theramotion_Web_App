@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../utils/db'
-import type { HomeVisit } from '../store/patientStore'
+import type { HomeVisit } from '../types/models'
 
 // Fetches the full history of visits for a specific patient.
 // Cached under ['visit-history', patientId].
