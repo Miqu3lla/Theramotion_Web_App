@@ -68,12 +68,7 @@ export default function Homepage() {
 
   const { search, setSearch, filteredPatients } = usePatientSearch(patients)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  // Single source of truth for the selected patient — shared by both the main
-  // grid and the directory modal so only one PatientPerformanceModal is ever
-  // rendered, preventing duplicate Supabase fetches.
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
-  // Separate selection for the notes modal so it can be open independently of
-  // the performance modal.
   const [notesPatient, setNotesPatient] = useState<Patient | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -137,7 +132,7 @@ export default function Homepage() {
 
           {isLoading ? (
             <div className="flex items-center justify-center p-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary">Loading...</div>
             </div>
           ) : error ? (
             <div className="bg-error-container text-on-error-container p-4 rounded-md">

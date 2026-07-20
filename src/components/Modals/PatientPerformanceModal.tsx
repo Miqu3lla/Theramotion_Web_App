@@ -120,7 +120,7 @@ export default function PatientPerformanceModal({ patient, onClose }: PatientPer
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {scores.map((exercise, index) => (
+              {scores.map((exercise) => (
                 <div
                   key={exercise.exercise_type}
                   className="py-4 border-b border-outline-variant last:border-b-0"

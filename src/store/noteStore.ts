@@ -126,7 +126,7 @@ const useNoteStore = create<NoteState>((set) => ({
                 fileName = file.name
             }
 
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('clinical_notes')
                 .insert({
                     patient_id: patientId,
@@ -199,7 +199,7 @@ const useNoteStore = create<NoteState>((set) => ({
                 fileName = null
             }
 
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('clinical_notes')
                 .update({
                     title: title.trim() || null,
