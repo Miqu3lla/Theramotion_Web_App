@@ -20,7 +20,9 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
   if (!patient) return null;
 
   // Prevents picking a date in the past. Format matches the date input (yyyy-mm-dd).
-  const minDate = new Date().toISOString().slice(0, 10);
+  // Using local date parts avoids the UTC shift that toISOString() would cause.
+  const today = new Date();
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   // Parses a manually typed "h:mm" (or "h") string into 24-hour parts using the
   // selected AM/PM. Returns null if it isn't a valid time.
@@ -47,8 +49,7 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
       return;
     }
 
-    // Build the visit in the therapist's local time, then convert to a real ISO
-    // (UTC) string so it is stored unambiguously.
+    // Build a Date object from the user's local date/time parts for validation.
     const [year, month, day] = date.split('-').map(Number);
     const when = new Date(year, month - 1, day, parsed.hours, parsed.minutes);
 
@@ -57,10 +58,15 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
       return;
     }
 
+    // Derive the local ISO string from the same `when` object using local getters.
+    // This avoids toISOString() which would convert to UTC and shift the time.
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const localIso = `${when.getFullYear()}-${pad(when.getMonth() + 1)}-${pad(when.getDate())}T${pad(when.getHours())}:${pad(when.getMinutes())}:00`;
+
     setIsSaving(true);
     setError(null);
     try {
-      await scheduleHomeVisit(patient.id, when.toISOString(), notes.trim() || undefined);
+      await scheduleHomeVisit(patient.id, localIso, notes.trim() || undefined);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Could not schedule the visit.');

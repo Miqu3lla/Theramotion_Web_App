@@ -21,6 +21,7 @@ export default function PatientCard({ patient, onViewProfile, onLogNote, isActiv
         day: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
+        timeZone: 'UTC', // Prevents local timezone (UTC+8) from shifting the date stored in the DB
       })
     : null;
 
