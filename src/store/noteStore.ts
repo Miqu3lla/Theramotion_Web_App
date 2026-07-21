@@ -87,9 +87,27 @@ function contentTypeFor(file: File): string {
 // Safely extract a message from an unknown caught value (catch clauses are
 // typed `unknown`), so we never assume `.message` exists on a non-Error.
 function getErrorMessage(error: unknown): string {
-    if (error instanceof Error) return error.message
-    if (typeof error === 'string') return error
-    return 'An unexpected error occurred.'
+    // Pull a raw message out of Errors, strings, or Supabase/Postgrest error
+    // objects (which are plain objects like { message, code, details }, not
+    // Error instances).
+    let raw: string | null = null
+    if (error instanceof Error) raw = error.message
+    else if (typeof error === 'string') raw = error
+    else if (
+        typeof error === 'object' &&
+        error !== null &&
+        'message' in error &&
+        typeof (error as { message: unknown }).message === 'string'
+    ) {
+        raw = (error as { message: string }).message
+    }
+
+    // Friendlier copy for the DB-enforced rate limit trigger.
+    if (raw && raw.startsWith('Rate limit exceeded')) {
+        return "You're adding notes too quickly. Please wait a moment and try again."
+    }
+
+    return raw ?? 'An unexpected error occurred.'
 }
 
 const useNoteStore = create<NoteState>((set) => ({
