@@ -1,4 +1,5 @@
 import { usePerformanceScores } from '../../hooks/usePerformanceScores';
+import PatientVideosSection from './PatientVideosSection';
 
 interface Patient {
   id: string;
@@ -147,6 +148,9 @@ export default function PatientPerformanceModal({ patient, onClose }: PatientPer
               ))}
             </div>
           )}
+
+          {/* Session videos */}
+          <PatientVideosSection patientId={patient.id} />
         </div>
       </div>
     </div>
