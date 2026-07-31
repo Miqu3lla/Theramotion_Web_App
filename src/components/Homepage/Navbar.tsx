@@ -43,11 +43,11 @@ export default function Navbar() {
             motion divs so framer-motion slides the indicator between links. */}
         <nav className="flex gap-6 h-full relative">
           <Link
-            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/home' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
-            to="/home"
+            className={`relative flex items-center h-full pb-1 font-label-md text-label-md transition-colors duration-200 ${location.pathname === '/' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
+            to="/"
           >
             Dashboard
-            {location.pathname === '/home' && (
+            {location.pathname === '/' && (
               <motion.div
                 layoutId="navbar-indicator"
                 className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
