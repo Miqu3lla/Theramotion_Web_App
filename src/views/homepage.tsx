@@ -72,9 +72,19 @@ export default function Homepage() {
   const [notesPatient, setNotesPatient] = useState<Patient | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
+  // Sort patients so online ones appear first
+  const sortedPatients = useMemo(() => {
+    return [...filteredPatients].sort((a, b) => {
+      const aOnline = activePatientIds.includes(a.id);
+      const bOnline = activePatientIds.includes(b.id);
+      if (aOnline === bOnline) return 0;
+      return aOnline ? -1 : 1;
+    });
+  }, [filteredPatients, activePatientIds]);
+
   const itemsPerPage = 8;
-  const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
-  const paginatedPatients = filteredPatients.slice(
+  const totalPages = Math.ceil(sortedPatients.length / itemsPerPage);
+  const paginatedPatients = sortedPatients.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
