@@ -15,10 +15,12 @@ export default function App() {
 
   //checks if the user is logged in or not
   useEffect(() => {  
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      useAuthStore.setState({ user: user ?? null })
-      setIsAuthLoading(false)
-    })
+    supabase.auth.getUser()
+      .then(({ data, error }) => {
+        if (error) console.error("Auth getUser error:", error)
+        useAuthStore.setState({ user: data?.user ?? null })
+      })
+      .finally(() => setIsAuthLoading(false))
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       useAuthStore.setState({ user: session?.user || null })
