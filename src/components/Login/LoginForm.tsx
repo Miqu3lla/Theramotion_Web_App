@@ -22,103 +22,102 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="tm-login-form-wrap">
       {/* Inline SVG logo — no external CDN request on the unauthenticated login
           page, which would expose visitor IPs to a third party before auth. */}
-      <div className="flex justify-center items-center gap-3 mb-6">
-        <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="currentColor" className="text-primary" aria-hidden="true">
-          <path d="M116-410q-21 0-35.5-14.5T66-460q0-21 14.5-35.5T116-510h128l108-306q8-23 29-35.5t45-8.5q24 4 41 21t22 40l105 450 63-146q9-20 28.5-32.5T730-540h114q21 0 35.5 14.5T894-490q0 21-14.5 35.5T844-440H753l-83 194q-9 20-28 32t-43 7q-23-4-40.5-20.5T536-267L434-703l-87 248q-8 23-28.5 34T274-410H116Z"/>
-        </svg>
-        <span className="text-2xl font-bold text-primary" aria-label="Theramotion">Theramotion</span>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 28 }}>
+        <div className="tm-brand-mark" style={{ width: 34, height: 34 }}>
+          <svg viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 18, height: 18 }}>
+            <path d="M1 10H6L8.5 3L13 17L15.5 10H25" stroke="#F1EDE4" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <span style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, color: 'var(--tm-ink)' }} aria-label="Theramotion">Theramotion</span>
       </div>
-      <div className="text-center mb-10">
-        <h2 className="text-headline-md font-headline-md font-semibold text-on-surface mb-1">Welcome back</h2>
-        <p className="text-body-md font-body-md text-secondary">Enter your credentials to access the clinical portal.</p>
+
+      <div style={{ textAlign: 'center', marginBottom: 36 }}>
+        <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 500, color: 'var(--tm-ink)', margin: '0 0 6px' }}>Welcome back</h2>
+        <p style={{ fontSize: 13.5, color: 'var(--tm-muted)', margin: 0 }}>Enter your credentials to access the clinical portal.</p>
       </div>
+
       {error && (
-        <div className="mb-4 p-3 bg-error-container text-on-error-container rounded text-sm">
+        <div className="tm-error-banner" style={{ marginBottom: 18 }}>
           {error}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-6">
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
         <div>
-          <label className="block text-label-md font-label-md font-semibold text-on-surface-variant mb-1" htmlFor="email">Email Address</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Mail className="text-secondary w-5 h-5" />
-            </div>
-            <input 
-              className="block w-full pl-16 pr-3 py-3 border border-outline-variant rounded text-body-md font-body-md text-on-surface bg-surface-container-lowest focus:ring-primary focus:border-primary transition-colors" 
-              id="email" 
-              name="email" 
-              placeholder="doctor@theramotion.com" 
-              required 
+          <label className="tm-field-label" htmlFor="email">Email Address</label>
+          <div className="tm-login-input-group">
+            <Mail className="h-[18px] w-[18px]" />
+            <input
+              id="email"
+              name="email"
+              placeholder="doctor@theramotion.com"
+              required
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
         </div>
+
         <div>
-          <label className="block text-label-md font-label-md font-semibold text-on-surface-variant mb-1" htmlFor="password">Password</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="text-secondary w-5 h-5" />
-            </div>
-            <input 
-              className="block w-full pl-16 pr-16 py-3 border border-outline-variant rounded text-body-md font-body-md text-on-surface bg-surface-container-lowest focus:ring-primary focus:border-primary transition-colors" 
-              id="password" 
-              name="password" 
-              placeholder="••••••••" 
-              required 
+          <label className="tm-field-label" htmlFor="password">Password</label>
+          <div className="tm-login-input-group">
+            <Lock className="h-[18px] w-[18px]" />
+            <input
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              required
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              style={{ paddingRight: 66 }}
             />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <button 
-                aria-label="Toggle password visibility" 
-                className="text-label-md font-label-md font-semibold text-primary hover:text-primary-fixed-variant transition-colors focus:outline-none flex items-center gap-1" 
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
+            <button
+              aria-label="Toggle password visibility"
+              className="tm-toggle-btn"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input 
-              className="h-4 w-4 text-primary focus:ring-primary border-outline-variant rounded bg-surface-container-lowest" 
-              id="remember-me" 
-              name="remember-me" 
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input
+              id="remember-me"
+              name="remember-me"
               type="checkbox"
+              style={{ width: 16, height: 16, accentColor: 'var(--tm-forest)' }}
             />
-            <label className="ml-2 block text-body-sm font-body-sm text-on-surface-variant" htmlFor="remember-me">
+            <label style={{ fontSize: 13, color: 'var(--tm-muted)' }} htmlFor="remember-me">
               Remember me
             </label>
           </div>
-          <div className="text-body-sm font-body-sm">
-            <a className="font-medium text-primary hover:text-primary-fixed-variant transition-colors" href="#">
-              Forgot password?
-            </a>
-          </div>
+          <a className="tm-inline-link" href="#" style={{ fontSize: 13 }}>
+            Forgot password?
+          </a>
         </div>
-        <div>
-          <button 
-            className="w-full flex justify-center py-3 px-3 border border-transparent rounded text-title-lg font-title-lg font-semibold text-on-primary bg-primary-container hover:bg-primary-fixed-variant transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm disabled:opacity-50" 
-            type="submit"
-            disabled={isloading}
-          >
-            {isloading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </div>
+
+        <button
+          type="submit"
+          disabled={isloading}
+          className="tm-btn primary"
+          style={{ padding: '13px 0', fontSize: 14.5, opacity: isloading ? 0.6 : 1, cursor: isloading ? 'not-allowed' : 'pointer' }}
+        >
+          {isloading ? 'Signing In...' : 'Sign In'}
+        </button>
       </form>
-      <div className="mt-16 text-center">
-        <p className="text-body-sm font-body-sm text-secondary">
-          Need help? <a className="text-primary font-medium hover:underline" href="#">Contact Support</a>
+
+      <div style={{ marginTop: 40, textAlign: 'center' }}>
+        <p style={{ fontSize: 13, color: 'var(--tm-muted)', margin: 0 }}>
+          Need help? <a className="tm-inline-link" style={{ fontSize: 13, display: 'inline' }} href="#">Contact Support</a>
         </p>
       </div>
     </div>

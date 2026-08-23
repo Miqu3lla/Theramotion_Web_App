@@ -93,55 +93,54 @@ export default function WriteNoteTab({
   const canSave = (title.trim() || content.trim() || file || keepingExistingFile) && !isSaving;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {editingNote && (
-        <div className="flex items-center justify-between gap-3 bg-secondary-container text-on-secondary-container rounded-lg px-4 py-2.5">
-          <span className="text-body-sm font-semibold">Editing note</span>
-          <button
-            onClick={onCancel}
-            className="text-body-sm font-semibold hover:underline"
-          >
+        <div className="tm-banner">
+          <span>Editing note</span>
+          <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', fontWeight: 700, color: 'inherit', textDecoration: 'underline' }}>
             Cancel
           </button>
         </div>
       )}
-      <div>
-        <label className="block text-body-sm font-semibold text-on-surface-variant mb-1.5">Title</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Session summary — Oct 24"
-          className="w-full px-4 py-2.5 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-body-md"
-        />
+
+      <div className="tm-content-card" style={{ padding: 20 }}>
+        <div style={{ marginBottom: 14 }}>
+          <label className="tm-field-label">Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Session summary — Oct 24"
+            className="tm-text-input"
+          />
+        </div>
+        <div>
+          <label className="tm-field-label">Note</label>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Add a note about today's visit — form, adherence, pain, anything worth flagging..."
+            rows={7}
+            className="tm-text-input"
+            style={{ resize: 'vertical', minHeight: 90 }}
+          />
+        </div>
       </div>
+
       <div>
-        <label className="block text-body-sm font-semibold text-on-surface-variant mb-1.5">Note</label>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Type the clinical note here..."
-          rows={8}
-          className="w-full px-4 py-3 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-body-md resize-y"
-        />
-      </div>
-      <div>
-        <label className="block text-body-sm font-semibold text-on-surface-variant mb-1.5">Attachment (optional)</label>
+        <label className="tm-field-label">Attachment (optional)</label>
         {keepingExistingFile ? (
-          <div className="flex items-center gap-3 flex-wrap bg-surface-container rounded-lg px-3 py-2">
-            <span className="inline-flex items-center gap-2 text-body-sm text-on-surface min-w-0">
-              <Paperclip className="h-4 w-4 shrink-0 text-on-surface-variant" />
-              <span className="truncate">{editingFileName}</span>
+          <div className="tm-attachment-row">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--tm-ink)', minWidth: 0 }}>
+              <Paperclip className="h-4 w-4" style={{ color: 'var(--tm-muted)', flexShrink: 0 }} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{editingFileName}</span>
             </span>
-            <div className="flex items-center gap-3 ml-auto">
-              <label className="text-body-sm text-primary font-semibold hover:underline cursor-pointer">
+            <div style={{ display: 'flex', gap: 12, marginLeft: 'auto' }}>
+              <label className="tm-inline-link" style={{ cursor: 'pointer' }}>
                 Replace
                 <input type="file" className="hidden" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} />
               </label>
-              <button
-                onClick={() => setRemoveExistingFile(true)}
-                className="text-body-sm text-error font-semibold hover:underline"
-              >
+              <button onClick={() => setRemoveExistingFile(true)} className="tm-inline-link danger">
                 Remove
               </button>
             </div>
@@ -152,14 +151,10 @@ export default function WriteNoteTab({
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
               onDrop={handleDrop}
-              className={`flex items-center gap-2 px-4 py-2.5 border border-dashed rounded-lg cursor-pointer transition-colors text-body-md ${
-                isDragging
-                  ? 'border-primary bg-primary-fixed/40 text-on-surface'
-                  : 'border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container'
-              }`}
+              className={`tm-dropzone${isDragging ? ' dragging' : ''}`}
             >
               <Paperclip className="h-4 w-4" />
-              <span className="truncate">
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {file ? file.name : isDragging ? 'Drop the file here' : 'Choose a file or drag it here'}
               </span>
               <input
@@ -169,27 +164,21 @@ export default function WriteNoteTab({
                 onChange={handleFileChange}
               />
             </label>
-            <p className="mt-1.5 text-body-sm text-on-surface-variant">
+            <p style={{ marginTop: 6, fontSize: 12.5, color: 'var(--tm-muted)' }}>
               PDF, Word, Excel, PowerPoint, text or images — up to {MAX_FILE_SIZE_MB}MB.
             </p>
             {fileError && (
-              <p className="mt-1 text-body-sm text-error">{fileError}</p>
+              <p style={{ marginTop: 4, fontSize: 12.5, color: 'var(--tm-warn)' }}>{fileError}</p>
             )}
             {file && (
-              <button
-                onClick={() => { setFile(null); setFileError(null); }}
-                className="mt-1.5 text-body-sm text-error hover:underline"
-              >
+              <button onClick={() => { setFile(null); setFileError(null); }} className="tm-inline-link danger" style={{ marginTop: 6 }}>
                 Remove attachment
               </button>
             )}
             {editingNote && removeExistingFile && editingFileName && (
-              <p className="mt-1.5 text-body-sm text-on-surface-variant">
+              <p style={{ marginTop: 6, fontSize: 12.5, color: 'var(--tm-muted)' }}>
                 Saved attachment will be removed.{' '}
-                <button
-                  onClick={() => setRemoveExistingFile(false)}
-                  className="text-primary font-semibold hover:underline"
-                >
+                <button onClick={() => setRemoveExistingFile(false)} className="tm-inline-link" style={{ fontSize: 12.5 }}>
                   Undo
                 </button>
               </p>
@@ -197,11 +186,13 @@ export default function WriteNoteTab({
           </>
         )}
       </div>
-      <div className="flex justify-end pt-2">
+
+      <div className="tm-composer-footer">
         <button
           onClick={handleSave}
           disabled={!canSave}
-          className="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md font-semibold hover:bg-primary-container hover:text-on-primary-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+          className="tm-btn primary"
+          style={{ opacity: canSave ? 1 : 0.5, cursor: canSave ? 'pointer' : 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: 8 }}
         >
           {editingNote ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {isSaving ? 'Saving...' : editingNote ? 'Update Note' : 'Save Note'}

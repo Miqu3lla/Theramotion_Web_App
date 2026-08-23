@@ -1,21 +1,16 @@
-import ImagesSection from '../components/Login/ImagesSection';
-import LoginForm from '../components/Login/LoginForm';
 import LoginTitle from '../components/Login/LoginTitle';
+import LoginForm from '../components/Login/LoginForm';
 
 export default function Loginpage() {
   return (
-    <div className="bg-surface min-h-screen flex flex-col md:flex-row">
-      {/* Left Side Hero */}
-      <div className="hidden md:flex md:w-1/2 relative flex-col items-center justify-center p-16 min-h-screen text-center overflow-hidden bg-black">
-        <ImagesSection />
-        {/* Subtle Vignette / Shadow Overlay */}
-        <div className="absolute inset-0 z-0 bg-black/40 pointer-events-none"></div>
-        {/* Content */}
+    <div className="tm-login-shell">
+      {/* Left side hero */}
+      <div className="tm-login-hero">
         <LoginTitle />
       </div>
 
-      {/* Right Side Login Form */}
-      <div className="flex-1 w-full md:w-1/2 flex items-center justify-center p-6 bg-surface">
+      {/* Right side login form */}
+      <div className="tm-login-form-side">
         <LoginForm />
       </div>
     </div>

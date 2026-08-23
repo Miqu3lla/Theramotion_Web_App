@@ -30,33 +30,27 @@ export default function FilePreviewModal({ file, onClose, onDownload }: FilePrev
 
   return (
     <div
-      className="fixed inset-0 z-70 flex items-center justify-center bg-black/60 p-4 print:hidden"
+      className="tm-modal-overlay print:hidden"
+      style={{ zIndex: 70, background: 'rgba(28,28,26,0.6)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-surface w-full max-w-3xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-xl">
+      <div className="tm-modal-panel" style={{ maxWidth: 720, maxHeight: '90vh' }}>
 
         {/* Header */}
-        <div className="p-4 border-b border-outline-variant flex justify-between items-center gap-3 bg-surface-container-lowest">
-          <h3 className="text-body-lg font-semibold text-on-surface truncate">{file.name}</h3>
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={onDownload}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-body-sm font-semibold text-primary hover:bg-surface-container transition-colors"
-            >
+        <div className="tm-modal-header" style={{ padding: '16px 20px' }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <button onClick={onDownload} className="tm-inline-link" style={{ padding: '7px 12px', borderRadius: 10 }}>
               <Download className="h-4 w-4" /> Download
             </button>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors"
-              aria-label="Close preview"
-            >
+            <button onClick={onClose} className="tm-modal-close" aria-label="Close preview">
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-auto bg-surface-container-low flex items-center justify-center">
+        <div style={{ flex: 1, overflow: 'auto', background: 'var(--tm-cream)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {file.kind === 'image' ? (
             <img src={file.url} alt={file.name} className="max-w-full max-h-[78vh] object-contain" />
           ) : file.kind === 'pdf' ? (
@@ -72,25 +66,19 @@ export default function FilePreviewModal({ file, onClose, onDownload }: FilePrev
             ) : (
               // Consent gate: previewing this file sends it off-platform to a
               // third party, so default to download and require an explicit opt-in.
-              <div className="text-center p-12 max-w-md mx-auto">
-                <ShieldAlert className="h-12 w-12 mx-auto text-on-surface-variant mb-4 opacity-70" />
-                <p className="text-body-md text-on-surface mb-1">Preview uses an external service</p>
-                <p className="text-body-sm text-on-surface-variant mb-6">
+              <div style={{ textAlign: 'center', padding: 48, maxWidth: 420, margin: '0 auto' }}>
+                <ShieldAlert className="h-11 w-11 mx-auto" style={{ color: 'var(--tm-muted)', marginBottom: 14, opacity: 0.8 }} />
+                <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--tm-ink)', marginBottom: 6 }}>Preview uses an external service</p>
+                <p style={{ fontSize: 13, color: 'var(--tm-muted)', marginBottom: 22, lineHeight: 1.5 }}>
                   To preview Office documents in the browser, this file is sent to
                   Microsoft's online viewer (view.officeapps.live.com). For sensitive
                   data, download it instead to open locally.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <button
-                    onClick={onDownload}
-                    className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg font-label-md font-semibold hover:bg-primary-container hover:text-on-primary-container transition-colors"
-                  >
-                    <Download className="h-4 w-4" /> Download file
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button onClick={onDownload} className="tm-btn primary" style={{ flex: 'none', padding: '10px 20px' }}>
+                    <Download className="h-4 w-4" style={{ display: 'inline', marginRight: 6 }} /> Download file
                   </button>
-                  <button
-                    onClick={() => setConsentedUrl(file.url)}
-                    className="inline-flex items-center justify-center gap-2 border border-outline-variant text-on-surface px-5 py-2.5 rounded-lg font-label-md font-semibold hover:bg-surface-container transition-colors"
-                  >
+                  <button onClick={() => setConsentedUrl(file.url)} className="tm-btn" style={{ flex: 'none', padding: '10px 20px' }}>
                     Preview with Microsoft viewer
                   </button>
                 </div>
@@ -103,15 +91,12 @@ export default function FilePreviewModal({ file, onClose, onDownload }: FilePrev
               {file.text}
             </pre>
           ) : (
-            <div className="text-center p-12">
-              <FileQuestion className="h-12 w-12 mx-auto text-on-surface-variant mb-4 opacity-60" />
-              <p className="text-body-md text-on-surface mb-1">This file type can't be previewed here.</p>
-              <p className="text-body-sm text-on-surface-variant mb-5">Download it to open with the right app.</p>
-              <button
-                onClick={onDownload}
-                className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg font-label-md font-semibold hover:bg-primary-container hover:text-on-primary-container transition-colors"
-              >
-                <Download className="h-4 w-4" /> Download file
+            <div className="tm-empty-state" style={{ padding: 48 }}>
+              <FileQuestion className="h-11 w-11 mx-auto" />
+              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--tm-ink)', marginBottom: 6 }}>This file type can't be previewed here.</p>
+              <p style={{ fontSize: 13, marginBottom: 20 }}>Download it to open with the right app.</p>
+              <button onClick={onDownload} className="tm-btn primary" style={{ flex: 'none', padding: '10px 20px', margin: '0 auto', display: 'inline-flex' }}>
+                <Download className="h-4 w-4" style={{ display: 'inline', marginRight: 6 }} /> Download file
               </button>
             </div>
           )}
