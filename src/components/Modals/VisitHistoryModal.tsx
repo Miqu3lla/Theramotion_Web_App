@@ -1,3 +1,4 @@
+import { X, CalendarClock } from 'lucide-react';
 import { useVisitHistory } from '../../hooks/useVisitHistory';
 import type { Patient } from '../../types/models';
 
@@ -7,6 +8,14 @@ interface VisitHistoryModalProps {
   onClose: () => void;
 }
 
+// Reskinned status colors on the tm palette — same three states as before
+// (completed / cancelled / scheduled), just mapped to the new tokens.
+const STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
+  completed: { bg: '#F1F6EF', fg: 'var(--tm-good)' },
+  cancelled: { bg: '#FBF1EA', fg: 'var(--tm-warn)' },
+  scheduled: { bg: 'var(--tm-tan)', fg: 'var(--tm-tan-icon)' },
+};
+
 export default function VisitHistoryModal({ patient, onClose }: VisitHistoryModalProps) {
   const { data: visits = [], isLoading, error: queryError } = useVisitHistory(patient?.id);
   const error = queryError?.message ?? null;
@@ -15,44 +24,38 @@ export default function VisitHistoryModal({ patient, onClose }: VisitHistoryModa
 
   return (
     <div
-      className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
+      className="tm-modal-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-surface w-full max-w-2xl max-h-[80vh] rounded-2xl flex flex-col overflow-hidden shadow-xl">
-        <div className="p-6 border-b border-outline-variant flex justify-between items-start bg-surface-container-lowest">
+      <div className="tm-modal-panel" style={{ maxWidth: 620, maxHeight: '80vh' }}>
+        <div className="tm-modal-header">
           <div>
-            <h2 className="text-title-lg font-display font-bold text-on-surface">
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 500, color: 'var(--tm-ink)', margin: 0 }}>
               Visit History
             </h2>
-            <p className="text-body-sm text-on-surface-variant">
+            <p className="tm-patient-area" style={{ marginTop: 2 }}>
               {patient.first_name} {patient.last_name}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors shrink-0"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <button onClick={onClose} className="tm-modal-close" aria-label="Close">
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="p-6 flex-1 overflow-y-auto bg-surface">
+        <div className="tm-modal-body">
           {isLoading ? (
-            <div className="flex justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--tm-forest)' }} />
             </div>
           ) : error ? (
-            <div className="bg-error-container text-on-error-container p-4 rounded-md text-body-md">
-              {error}
-            </div>
+            <div className="tm-error-banner">{error}</div>
           ) : visits.length === 0 ? (
-            <div className="text-center p-8 text-on-surface-variant text-body-lg">
-              No visits found for this patient.
+            <div className="tm-empty-state">
+              <CalendarClock className="h-9 w-9 mx-auto" />
+              <p style={{ fontSize: 14 }}>No visits found for this patient.</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {visits.map((visit) => {
                 // timeZone: 'UTC' prevents JS from shifting the locally-stored timestamp
                 const date = new Date(visit.scheduled_at).toLocaleString('en-US', {
@@ -64,25 +67,34 @@ export default function VisitHistoryModal({ patient, onClose }: VisitHistoryModa
                   minute: '2-digit',
                   timeZone: 'UTC'
                 });
+                const style = STATUS_STYLE[visit.status] ?? STATUS_STYLE.scheduled;
 
                 return (
-                  <div key={visit.id} className="bg-surface-container-lowest border border-outline-variant p-4 rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-bold text-body-lg text-on-surface">{date}</h4>
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        visit.status === 'completed' ? 'bg-green-100 text-green-700' :
-                        visit.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
+                  <div key={visit.id} className="tm-content-card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: visit.notes ? 8 : 0 }}>
+                      <h4 style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--tm-ink)', margin: 0 }}>{date}</h4>
+                      <span
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: 100,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                          background: style.bg,
+                          color: style.fg,
+                          flexShrink: 0,
+                        }}
+                      >
                         {visit.status}
                       </span>
                     </div>
                     {visit.notes ? (
-                      <p className="text-body-sm text-on-surface-variant mt-2 whitespace-pre-wrap">
+                      <p style={{ fontSize: 13, color: 'var(--tm-muted)', margin: 0, whiteSpace: 'pre-wrap' }}>
                         {visit.notes}
                       </p>
                     ) : (
-                      <p className="text-body-sm text-on-surface-variant italic mt-2">
+                      <p style={{ fontSize: 13, color: 'var(--tm-muted-light)', fontStyle: 'italic', margin: 0 }}>
                         No notes provided.
                       </p>
                     )}
