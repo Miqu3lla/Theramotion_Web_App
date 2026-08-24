@@ -103,10 +103,6 @@ export default function PatientCard({ patient, nextVisit = null, onViewProfile, 
           </button>
         </div>
       </div>
-      <div className="tm-info-row">
-        <span className="tm-label">Next</span>
-        <span>Today, 2:00 PM</span>
-      </div>
 
       <div className="tm-card-actions">
         <button className="tm-btn" onClick={() => onLogNote?.(patient)}>Log Note</button>

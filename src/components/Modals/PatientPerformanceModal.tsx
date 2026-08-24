@@ -24,15 +24,16 @@ const ICON_THEMES = [
 ];
 
 // Score tier — same thresholds the app has always used (>=75 good, >=50 mid,
-// else needs attention / no data), just reskinned.
-function scoreTier(score: number | null): 'good' | 'mid' | 'low' {
-  if (score === null) return 'low';
+// else needs attention), just reskinned. A missing score is its own 'none'
+// tier so unavailable data never reads as poor performance.
+function scoreTier(score: number | null): 'good' | 'mid' | 'low' | 'none' {
+  if (score === null) return 'none';
   if (score >= 75) return 'good';
   if (score >= 50) return 'mid';
   return 'low';
 }
-const TIER_FILL: Record<string, string> = { good: 'var(--tm-good)', mid: 'var(--tm-tan-icon)', low: 'var(--tm-warn)' };
-const TIER_LABEL: Record<string, string> = { good: 'On track', mid: 'Fair', low: 'Needs attention' };
+const TIER_FILL: Record<string, string> = { good: 'var(--tm-good)', mid: 'var(--tm-tan-icon)', low: 'var(--tm-warn)', none: 'var(--tm-border-soft)' };
+const TIER_LABEL: Record<string, string> = { good: 'On track', mid: 'Fair', low: 'Needs attention', none: 'No data' };
 
 export default function PatientPerformanceModal({ patient, onClose }: PatientPerformanceModalProps) {
   const { data: scores = [], isLoading: isLoadingScores, error: performanceError } = usePerformanceScores(patient?.id);
