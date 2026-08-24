@@ -12,6 +12,21 @@ interface PatientCardProps {
   isActive?: boolean;
 }
 
+// Rotates the three mockup accent themes (sage / coral / tan) across patients.
+// Keyed by patient id (not list position) so the same patient always gets the
+// same color whether shown in the main grid or the directory modal.
+const AVATAR_THEMES = [
+  { bg: 'var(--tm-sage)', fg: 'var(--tm-sage-icon)' },
+  { bg: 'var(--tm-coral)', fg: 'var(--tm-coral-icon)' },
+  { bg: 'var(--tm-tan)', fg: 'var(--tm-tan-icon)' },
+];
+
+function avatarTheme(id: string) {
+  let sum = 0;
+  for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+  return AVATAR_THEMES[sum % AVATAR_THEMES.length];
+}
+
 export default function PatientCard({ patient, nextVisit = null, onViewProfile, onLogNote, isActive = false }: PatientCardProps) {
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -37,76 +52,68 @@ export default function PatientCard({ patient, nextVisit = null, onViewProfile, 
 
   const displayText = patient.affected_area === 'both' && patient.affected_side === 'both' ? 'Both arms and legs' : `${patient.affected_side} - ${patient.affected_area}`
 
+  const theme = avatarTheme(patient.id);
+
   return (
     <>
-    <div className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant flex flex-col justify-between hover:shadow-sm transition-shadow">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex gap-3 items-center">
-          <div className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center text-title-lg font-bold">
+    <div className="tm-patient-card">
+      <div className="tm-patient-top">
+        <div className="tm-patient-id">
+          <div className="tm-patient-initials" style={{ background: theme.bg, color: theme.fg }}>
             {initials}
           </div>
-          <div>
-            <h3 className="text-body-lg font-display font-semibold text-on-surface">
-              {patient.first_name} {patient.last_name}
-            </h3>
-            <p className="text-body-sm text-on-surface-variant">
-              {displayText}
-            </p>
+          <div style={{ minWidth: 0 }}>
+            <p className="tm-patient-name">{patient.first_name} {patient.last_name}</p>
+            <p className="tm-patient-area">{displayText}</p>
           </div>
         </div>
-        <div className={`px-2 py-1 rounded border text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isActive ? 'bg-green-100 text-green-700 border-green-200' : 'bg-surface-container text-on-surface-variant border-outline-variant'}`}>
-          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>}
+        <span className={`tm-status-pill${isActive ? ' active' : ''}`}>
           {isActive ? 'Active' : 'Inactive'}
-        </div>
+        </span>
       </div>
-      
-      <div className="space-y-2 mb-5">
-        <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <span className="font-semibold mr-1">Home Visit:</span>
-          <button
-            onClick={() => setIsScheduleOpen(true)}
-            className="text-primary hover:underline font-medium"
-          >
+
+      {/* Trend row — only claims what real, already-loaded data supports.
+          A live-session flag is real (Supabase Presence); we don't yet fetch
+          every visible patient's performance scores up front, so we don't
+          fabricate a performance direction here. */}
+      {isActive ? (
+        <div className="tm-trend-row">
+          <span className="tm-trend-dot"></span>
+          Currently in a live session
+        </div>
+      ) : (
+        <div className="tm-trend-row neutral">
+          <span className="tm-trend-dot"></span>
+          Open profile for latest performance
+        </div>
+      )}
+
+      <div className="tm-info-row">
+        <span className="tm-label">Home Visit</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button className="tm-link" onClick={() => setIsScheduleOpen(true)}>
             {nextVisitLabel ?? 'Schedule visit'}
           </button>
           <button
+            className="tm-link"
+            style={{ color: 'var(--tm-muted)', fontSize: 12 }}
             onClick={() => setIsHistoryOpen(true)}
-            className="ml-auto text-primary text-xs hover:bg-primary-container bg-surface-container-high px-2.5 py-1 rounded-md transition-colors"
           >
             History
           </button>
         </div>
-        <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="font-semibold mr-1">Next:</span> Today, 2:00 PM
-        </div>
       </div>
-      
-      <div className="border-t border-outline-variant pt-4 flex gap-3">
-        <button
-          onClick={() => onLogNote?.(patient)}
-          className="flex-1 bg-surface-container-lowest text-on-surface py-2 px-4 rounded-md font-label-md border border-outline-variant hover:bg-surface-container transition-colors text-center font-semibold"
-        >
-          Log Note
-        </button>
-        <button
-          onClick={() => onViewProfile?.(patient)}
-          className="flex-1 bg-primary text-on-primary py-2 px-4 rounded-md font-label-md hover:bg-primary-container transition-colors text-center font-semibold"
-        >
-          View Profile
-        </button>
+
+      <div className="tm-card-actions">
+        <button className="tm-btn" onClick={() => onLogNote?.(patient)}>Log Note</button>
+        <button className="tm-btn primary" onClick={() => onViewProfile?.(patient)}>View Profile</button>
       </div>
     </div>
 
     {isScheduleOpen && (
       <ScheduleVisitModal patient={patient} onClose={() => setIsScheduleOpen(false)} />
     )}
-    
+
     {isHistoryOpen && (
       <VisitHistoryModal patient={patient} onClose={() => setIsHistoryOpen(false)} />
     )}

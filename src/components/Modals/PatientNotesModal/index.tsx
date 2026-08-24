@@ -17,11 +17,24 @@ interface PatientNotesModalProps {
 
 type Tab = 'all' | 'write';
 
+// Same avatar-accent rotation as the dashboard's PatientCard, keyed by patient
+// id so the same patient reads with the same color everywhere.
+const AVATAR_THEMES = [
+  { bg: 'var(--tm-sage)', fg: 'var(--tm-sage-icon)' },
+  { bg: 'var(--tm-coral)', fg: 'var(--tm-coral-icon)' },
+  { bg: 'var(--tm-tan)', fg: 'var(--tm-tan-icon)' },
+];
+function avatarTheme(id: string) {
+  let sum = 0;
+  for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+  return AVATAR_THEMES[sum % AVATAR_THEMES.length];
+}
+
 export default function PatientNotesModal({ patient, onClose }: PatientNotesModalProps) {
   const patientId = patient?.id;
   const { data: notes = [], isLoading, error: queryError } = useClinicalNotes(patientId);
   const { deleteNote, getFileUrl, error: storeError } = useNoteStore();
-  
+
   const error = queryError?.message || storeError || null;
 
   const [tab, setTab] = useState<Tab>('all');
@@ -53,6 +66,10 @@ export default function PatientNotesModal({ patient, onClose }: PatientNotesModa
     .toUpperCase() || '?';
 
   const patientName = `${patient.first_name ?? ''} ${patient.last_name ?? ''}`.trim() || 'Patient';
+  const displayArea = patient.affected_area === 'both' && patient.affected_side === 'both'
+    ? 'Both arms and legs'
+    : `${patient.affected_side} - ${patient.affected_area}`;
+  const theme = avatarTheme(patient.id);
 
   const handleViewFile = async (path: string, name: string | null) => {
     const url = await getFileUrl(path);
@@ -93,50 +110,38 @@ export default function PatientNotesModal({ patient, onClose }: PatientNotesModa
   return (
     <>
       <div
-        className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4 print:hidden"
+        className="tm-modal-overlay print:hidden"
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       >
-        <div className="bg-surface w-full max-w-2xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-xl">
+        <div className="tm-modal-panel" style={{ maxWidth: 640, maxHeight: '90vh' }}>
           {/* Header */}
-          <div className="p-6 border-b border-outline-variant flex justify-between items-start bg-surface-container-lowest">
-            <div className="flex gap-4 items-center">
-              <div className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center text-title-lg font-bold shrink-0">
+          <div className="tm-modal-header">
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+              <div className="tm-patient-initials" style={{ width: 48, height: 48, fontSize: 15, background: theme.bg, color: theme.fg }}>
                 {initials}
               </div>
               <div>
-                <h2 className="text-title-lg font-display font-bold text-on-surface">{patientName}</h2>
-                <p className="text-body-sm text-on-surface-variant">Clinical Notes</p>
+                <p className="tm-patient-name" style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 500, whiteSpace: 'normal' }}>{patientName}</p>
+                <p className="tm-patient-area">{displayArea}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors shrink-0"
-              aria-label="Close"
-            >
-              <X className="h-6 w-6" />
+            <button onClick={onClose} className="tm-modal-close" aria-label="Close">
+              <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b border-outline-variant bg-surface px-6">
+          <div className="tm-tabs">
             <button
               onClick={() => { setTab('all'); setEditingNote(null); }}
-              className={`px-4 py-3 text-body-md font-semibold border-b-2 -mb-px transition-colors flex items-center gap-2 ${
-                tab === 'all'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-on-surface-variant hover:text-on-surface'
-              }`}
+              className={`tm-tab-btn${tab === 'all' ? ' active' : ''}`}
             >
               <FileText className="h-4 w-4" />
               All Notes {notes ? `(${notes.length})` : ''}
             </button>
             <button
               onClick={() => { if (!editingNote) setEditingNote(null); setTab('write'); }}
-              className={`px-4 py-3 text-body-md font-semibold border-b-2 -mb-px transition-colors flex items-center gap-2 ${
-                tab === 'write'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-on-surface-variant hover:text-on-surface'
-              }`}
+              className={`tm-tab-btn${tab === 'write' ? ' active' : ''}`}
             >
               <NotebookPen className="h-4 w-4" />
               {editingNote ? 'Edit' : 'Write'}
@@ -144,13 +149,13 @@ export default function PatientNotesModal({ patient, onClose }: PatientNotesModa
           </div>
 
           {error && (
-            <div className="mx-6 mt-4 bg-error-container text-on-error-container p-3 rounded-md text-body-sm">
+            <div style={{ margin: '16px 26px 0' }} className="tm-error-banner">
               {error}
             </div>
           )}
 
           {/* Body */}
-          <div className="px-6 py-5 overflow-y-auto bg-surface flex-1">
+          <div className="tm-modal-body">
             {tab === 'write' ? (
               <WriteNoteTab
                 patient={patient}

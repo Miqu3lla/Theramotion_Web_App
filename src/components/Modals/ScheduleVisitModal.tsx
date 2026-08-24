@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import usePatientStore from '../../store/patientStore';
 import type { Patient } from '../../types/models';
 
@@ -77,35 +78,30 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
 
   return (
     <div
-      className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
+      className="tm-modal-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-surface w-full max-w-md rounded-2xl flex flex-col overflow-hidden shadow-xl">
+      <div className="tm-modal-panel" style={{ maxWidth: 440, maxHeight: '90vh' }}>
 
         {/* Header */}
-        <div className="p-6 border-b border-outline-variant flex justify-between items-start bg-surface-container-lowest">
+        <div className="tm-modal-header">
           <div>
-            <h2 className="text-title-lg font-display font-bold text-on-surface">
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 500, color: 'var(--tm-ink)', margin: 0 }}>
               Schedule Home Visit
             </h2>
-            <p className="text-body-sm text-on-surface-variant">
+            <p className="tm-patient-area" style={{ marginTop: 2 }}>
               {patient.first_name} {patient.last_name}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors shrink-0"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <button onClick={onClose} className="tm-modal-close" aria-label="Close">
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 bg-surface flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="visit-date" className="text-body-sm font-semibold text-on-surface">
+        <div className="tm-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label htmlFor="visit-date" className="tm-field-label">
               Visit date
             </label>
             <input
@@ -114,15 +110,15 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
               value={date}
               min={minDate}
               onChange={(e) => setDate(e.target.value)}
-              className="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-primary"
+              className="tm-text-input"
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="visit-time" className="text-body-sm font-semibold text-on-surface">
+          <div>
+            <label htmlFor="visit-time" className="tm-field-label">
               Time
             </label>
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: 8 }}>
               <input
                 id="visit-time"
                 type="text"
@@ -130,13 +126,15 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
                 placeholder="2:30"
-                className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-primary"
+                className="tm-text-input"
+                style={{ flex: 1 }}
               />
               <select
                 aria-label="AM or PM"
                 value={meridiem}
                 onChange={(e) => setMeridiem(e.target.value as 'AM' | 'PM')}
-                className="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface focus:outline-none focus:border-primary"
+                className="tm-text-input"
+                style={{ width: 80, flexShrink: 0 }}
               >
                 <option value="AM">AM</option>
                 <option value="PM">PM</option>
@@ -144,9 +142,9 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="visit-notes" className="text-body-sm font-semibold text-on-surface">
-              Notes <span className="font-normal text-on-surface-variant">(optional)</span>
+          <div>
+            <label htmlFor="visit-notes" className="tm-field-label">
+              Notes <span style={{ fontWeight: 400, color: 'var(--tm-muted-light)' }}>(optional)</span>
             </label>
             <textarea
               id="visit-notes"
@@ -154,28 +152,31 @@ export default function ScheduleVisitModal({ patient, onClose }: ScheduleVisitMo
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="e.g. bring resistance bands, gate code 1234"
-              className="bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 text-body-md text-on-surface resize-none focus:outline-none focus:border-primary"
+              className="tm-text-input"
+              style={{ resize: 'none' }}
             />
           </div>
 
           {error && (
-            <p className="text-body-sm text-error">{error}</p>
+            <p style={{ fontSize: 13, color: 'var(--tm-warn)', margin: 0 }}>{error}</p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-6 pt-0 bg-surface flex gap-3">
+        <div style={{ padding: '0 26px 26px', display: 'flex', gap: 12 }}>
           <button
             onClick={onClose}
             disabled={isSaving}
-            className="flex-1 bg-surface-container-lowest text-on-surface py-2 px-4 rounded-md font-label-md border border-outline-variant hover:bg-surface-container transition-colors font-semibold disabled:opacity-50"
+            className="tm-btn"
+            style={{ opacity: isSaving ? 0.5 : 1 }}
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex-1 bg-primary text-on-primary py-2 px-4 rounded-md font-label-md hover:bg-primary-container transition-colors font-semibold disabled:opacity-50"
+            className="tm-btn primary"
+            style={{ opacity: isSaving ? 0.5 : 1 }}
           >
             {isSaving ? 'Saving…' : 'Schedule'}
           </button>

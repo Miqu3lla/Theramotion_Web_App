@@ -1,3 +1,4 @@
+import { X, Dumbbell } from 'lucide-react';
 import { usePerformanceScores } from '../../hooks/usePerformanceScores';
 import PatientVideosSection from './PatientVideosSection';
 
@@ -14,43 +15,25 @@ interface PatientPerformanceModalProps {
   onClose: () => void;
 }
 
-// Shows a color-coded pill badge based on score: blue = good, grey = moderate, red = poor/missing
-function ScoreBadge({ score }: { score: number | null }) {
-  if (score === null) {
-    return (
-      <span className="px-2.5 py-1 rounded-full text-label-md font-bold bg-error-container text-on-error-container">
-        No data
-      </span>
-    );
-  }
-  if (score >= 75) {
-    return (
-      <span className="px-2.5 py-1 rounded-full text-label-md font-bold bg-primary-fixed text-on-primary-fixed">
-        {score}
-      </span>
-    );
-  }
-  if (score >= 50) {
-    return (
-      <span className="px-2.5 py-1 rounded-full text-label-md font-bold bg-secondary-container text-on-secondary-container">
-        {score}
-      </span>
-    );
-  }
-  return (
-    <span className="px-2.5 py-1 rounded-full text-label-md font-bold bg-error-container text-on-error-container">
-      {score}
-    </span>
-  );
-}
+// Same three-color rotation as the dashboard's PatientCard/notes avatars,
+// applied here to each exercise's icon badge.
+const ICON_THEMES = [
+  { bg: 'var(--tm-sage)', fg: 'var(--tm-sage-icon)' },
+  { bg: 'var(--tm-coral)', fg: 'var(--tm-coral-icon)' },
+  { bg: 'var(--tm-tan)', fg: 'var(--tm-tan-icon)' },
+];
 
-// Returns the Tailwind color class for the progress bar fill, matching the same thresholds as ScoreBadge
-function progressColor(score: number | null) {
-  if (score === null) return 'bg-outline-variant';
-  if (score >= 75) return 'bg-primary';
-  if (score >= 50) return 'bg-secondary';
-  return 'bg-error';
+// Score tier — same thresholds the app has always used (>=75 good, >=50 mid,
+// else needs attention), just reskinned. A missing score is its own 'none'
+// tier so unavailable data never reads as poor performance.
+function scoreTier(score: number | null): 'good' | 'mid' | 'low' | 'none' {
+  if (score === null) return 'none';
+  if (score >= 75) return 'good';
+  if (score >= 50) return 'mid';
+  return 'low';
 }
+const TIER_FILL: Record<string, string> = { good: 'var(--tm-good)', mid: 'var(--tm-tan-icon)', low: 'var(--tm-warn)', none: 'var(--tm-border-soft)' };
+const TIER_LABEL: Record<string, string> = { good: 'On track', mid: 'Fair', low: 'Needs attention', none: 'No data' };
 
 export default function PatientPerformanceModal({ patient, onClose }: PatientPerformanceModalProps) {
   const { data: scores = [], isLoading: isLoadingScores, error: performanceError } = usePerformanceScores(patient?.id);
@@ -70,83 +53,80 @@ export default function PatientPerformanceModal({ patient, onClose }: PatientPer
       ? 'Both arms and legs'
       : `${patient.affected_side} - ${patient.affected_area}`;
 
-
   return (
     <div
-      className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
+      className="tm-modal-overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-surface w-full max-w-lg max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-xl">
+      <div className="tm-modal-panel" style={{ maxWidth: 620, maxHeight: '90vh' }}>
 
         {/* Header */}
-        <div className="p-6 border-b border-outline-variant flex justify-between items-start bg-surface-container-lowest">
-          <div className="flex gap-4 items-center">
-            <div className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center text-title-lg font-bold shrink-0">
+        <div className="tm-modal-header">
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+            <div className="tm-patient-initials" style={{ width: 48, height: 48, fontSize: 15, background: 'var(--tm-sage)', color: 'var(--tm-sage-icon)' }}>
               {initials}
             </div>
             <div>
-              <h2 className="text-title-lg font-display font-bold text-on-surface">
+              <p className="tm-patient-name" style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 500, whiteSpace: 'normal' }}>
                 {patient.first_name} {patient.last_name}
-              </h2>
-              <p className="text-body-sm text-on-surface-variant">{displayText}</p>
+              </p>
+              <p className="tm-patient-area">{displayText}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors shrink-0"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <button onClick={onClose} className="tm-modal-close" aria-label="Close">
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Sub-header label */}
-        <div className="px-6 pt-5 pb-2 bg-surface">
-          <h3 className="text-body-md font-semibold text-on-surface-variant uppercase tracking-wider text-[11px]">
-            Exercise Performance
-          </h3>
-        </div>
-
         {/* Body */}
-        <div className="px-6 pb-6 overflow-y-auto bg-surface flex-1">
+        <div className="tm-modal-body">
+          <p className="tm-eyebrow" style={{ marginBottom: 4 }}>Performance</p>
+
           {isLoadingScores ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--tm-forest)' }} />
             </div>
           ) : performanceError ? (
-            <div className="bg-error-container text-on-error-container p-4 rounded-md my-4">
-              <p className="text-body-md font-medium">Failed to load performance scores.</p>
-              <p className="text-body-sm mt-1">{performanceError.message}</p>
+            <div className="tm-error-banner" style={{ margin: '12px 0' }}>
+              <p style={{ fontWeight: 700, margin: 0 }}>Failed to load performance scores.</p>
+              <p style={{ margin: '4px 0 0', fontSize: 13 }}>{performanceError.message}</p>
             </div>
           ) : scores.length === 0 ? (
-            <div className="bg-surface-container-low border border-outline-variant border-dashed p-10 rounded-xl text-center">
-              <p className="text-body-lg text-on-surface-variant font-medium">No recent performance data</p>
-              <p className="text-body-sm text-on-surface-variant mt-1">This patient hasn't completed any tracked exercises recently.</p>
+            <div className="tm-empty-state">
+              <Dumbbell className="h-9 w-9 mx-auto" />
+              <p style={{ fontWeight: 600, color: 'var(--tm-ink)', marginBottom: 4 }}>No recent performance data</p>
+              <p style={{ fontSize: 13 }}>This patient hasn't completed any tracked exercises recently.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {scores.map((exercise) => (
-                <div
-                  key={exercise.exercise_type}
-                  className="py-4 border-b border-outline-variant last:border-b-0"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-body-md font-semibold text-on-surface capitalize">
-                      {exercise.exercise_type}
-                    </span>
-                    <ScoreBadge score={exercise.latest_form_score} />
-                  </div>
-                  {/* Progress bar */}
-                  <div className="h-1.5 w-full rounded-full bg-outline-variant overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${progressColor(exercise.latest_form_score)}`}
-                      style={{ width: `${exercise.latest_form_score ?? 0}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <>
+              <h2 className="tm-section-title" style={{ marginTop: 12, marginBottom: 16, fontSize: 19 }}>By exercise</h2>
+              <div className="tm-exercise-list">
+                {scores.map((exercise, i) => {
+                  const tier = scoreTier(exercise.latest_form_score);
+                  const theme = ICON_THEMES[i % ICON_THEMES.length];
+                  return (
+                    <div key={exercise.exercise_type} className="tm-content-card tm-exercise-card" style={{ padding: 16, alignItems: 'center' }}>
+                      <div className="tm-exercise-icon" style={{ background: theme.bg, color: theme.fg }}>
+                        <Dumbbell className="h-[18px] w-[18px]" />
+                      </div>
+                      <div className="tm-exercise-info">
+                        <p className="tm-exercise-name">{exercise.exercise_type.replace(/_/g, ' ')}</p>
+                        <span className={`tm-score-badge ${tier}`}>{TIER_LABEL[tier]}</span>
+                      </div>
+                      <div style={{ flex: 1, maxWidth: 100 }}>
+                        <div className="tm-progress-track">
+                          <div className="tm-progress-fill" style={{ width: `${exercise.latest_form_score ?? 0}%`, background: TIER_FILL[tier] }} />
+                        </div>
+                      </div>
+                      <div className="tm-exercise-score">
+                        <div className="tm-num">{exercise.latest_form_score ?? '—'}</div>
+                        <div className="tm-lbl">Score</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
 
           {/* Session videos */}
